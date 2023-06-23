@@ -1,0 +1,46 @@
+---
+title: "Installation"
+---
+
+## Install Julia
+
+## Install Quarto
+
+## Install Findr.jl
+
+## Install the FindrTutorials repository
+
+The [FindrTutorials repository](https://github.com/tmichoel/FindrTutorials) uses [DrWatson](https://juliadynamics.github.io/DrWatson.jl/stable/)
+to make a reproducible scientific project named
+
+> FindrTutorials
+
+To (locally) reproduce this project, do the following:
+
+0. Download this code base. Notice that raw data are not included in the
+   git-history and need to be downloaded independently (see below).
+1. Open a Julia console and do:
+   ```
+   julia> using Pkg
+   julia> Pkg.add("DrWatson") # install globally, for using `quickactivate`
+   julia> Pkg.activate("path/to/this/project")
+   julia> Pkg.instantiate()
+   ```
+
+This will install all necessary packages for you to be able to run the scripts and
+everything should work out of the box, including correctly finding local paths.
+
+You may notice that most scripts start with the commands:
+```julia
+using DrWatson
+@quickactivate "FindrTutorials"
+```
+which auto-activate the project and enable local path handling from DrWatson.
+
+## Download and preprocess data
+
+The `scripts` folder of the project contains a number of files named `process_data_*`. The header of each script explains where to download raw data from and where to save them in the `exp_raw` folder. You can then run the script to produce processed data files in the [Apache Arrow](https://arrow.apache.org/) format, which will be stored in the `exp_pro` folder.
+
+## Run the tutorials
+
+You are now all set up to run the tutorials. You can either work directly with the `*.qmd` files in the `website` folder, or use the [jupyter](https://jupyter.org/) notebooks (`*.ipynb` files) in the `notebooks` folder. Make sure to have [IJulia](https://julialang.github.io/IJulia.jl/stable/) installed if using the latter option.
