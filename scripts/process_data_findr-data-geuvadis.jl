@@ -40,6 +40,14 @@ select!(mirna, Not(:Column1))
 select!(geno, Not(:Column1))
 select!(geno_mirna, Not(:Column1))
 
+# Read conversion.txt file to map Ensembl IDs to gene names
+fname = datadir("exp_raw","findr-data-geuvadis","conversion.txt")
+gmap = DataFrame(CSV.File(fname))
+rename!(gmap, [:"Ensembl Gene ID" => :EnsemblID, :"Associated Gene Name" => :GeneName])
+
+enames = DataFrame(:EnsemblID => map(x -> split(x,".")[1], names(expr)))
+leftjoin!(enames, gmap, on = :EnsemblID)
+
 # Save data to exp_pro folder
 oname = datadir("exp_pro","findr-data-geuvadis", "dt.arrow")
 Arrow.write(oname,expr)

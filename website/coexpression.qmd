@@ -1,3 +1,78 @@
 ---
 title: "Coexpression analysis"
+author: "Tom Michoel"
+date: "06/23/2023"
+format:
+  html:
+    code-fold: true
+jupyter: julia-1.9
 ---
+
+## Setup the environment
+
+```{julia}
+using DrWatson
+quickactivate(@__DIR__)
+
+using DataFrames
+using Arrow
+using Statistics
+using StatsBase
+using LinearAlgebra
+using StatsPlots
+
+using Findr
+```
+
+## Load data
+
+mRNA expression data
+
+```{julia}
+fname = datadir("exp_pro","findr-data-geuvadis", "dt.arrow");
+dt = DataFrame(Arrow.Table(fname));
+Xt = Matrix(dt);
+```
+
+mRNA eQTL genotypes
+```{julia}
+fname = datadir("exp_pro","findr-data-geuvadis", "dgt.arrow");
+dgt = DataFrame(Arrow.Table(fname));
+Gt = Matrix{Int8}(dgt);
+```
+
+Micro-RNA expression data
+
+```{julia}
+fname = datadir("exp_pro","findr-data-geuvadis", "dm.arrow");
+dm = DataFrame(Arrow.Table(fname));
+Xm = Matrix(dm);
+```
+
+Micro-RNA eQTL genotypes
+```{julia}
+fname = datadir("exp_pro","findr-data-geuvadis", "dgm.arrow");
+dgm = DataFrame(Arrow.Table(fname));
+Gm = Matrix{Int8}(dgm);
+```
+
+```{julia}
+mirpairs = zeros(Int32,size(Gm,2),2);
+for k=1:size(mirpairs,1);
+    mirpairs[k,:] = [k k];
+end
+
+dmirpairs = DataFrame(SNP_ID = names(dgm), GENE_ID=names(dm)[1:ncol(dgm)]);
+```
+
+## Findr coexpression networks
+
+```{julia}
+P0 = Findr.findr(expr);
+filter!(row -> ∈(row.Source,TFs), P0);
+```
+
+```{julia}
+P0sym = Findr.findr(expr, combination="mean");
+filter!(row -> ∈(row.Source,TFs), P0sym);
+```
