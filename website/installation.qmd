@@ -8,6 +8,10 @@ title: "Installation"
 
 ## Install Findr.jl
 
+Clone repo
+
+dev Findr-dir
+
 ## Install the FindrTutorials repository
 
 The [FindrTutorials repository](https://github.com/tmichoel/FindrTutorials) uses [DrWatson](https://juliadynamics.github.io/DrWatson.jl/stable/)

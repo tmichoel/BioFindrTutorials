@@ -43,10 +43,8 @@ At the moment, [Findr][1] does not support count-based expression data being pro
 This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called `dt`, and one for microRNA (miRNA) expression data called `dm`:
 
 ```{julia}
-fname = datadir("exp_pro","findr-data-geuvadis", "dt.arrow");
-dt = DataFrame(Arrow.Table(fname));
-fname = datadir("exp_pro","findr-data-geuvadis", "dm.arrow");
-dm = DataFrame(Arrow.Table(fname));
+dt = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dt.arrow")));
+dm = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dm.arrow")));
 ```
 
 ```{julia}
@@ -54,7 +52,7 @@ dm = DataFrame(Arrow.Table(fname));
 nt1, nt2 = size(dt)
 nm1, nm2 = size(dm)
 Markdown.parse("""
-The mRNA data has expression data for $nt2 genes in $nt1 samples, while miRNA data is available for $nm2 in the same $nm1 samples.
+The mRNA data has expression data for $nt2 genes in $nt1 samples, while miRNA data is available for $nm2 miRNAs in the same $nm1 samples.
 """)
 ```
 
