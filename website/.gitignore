@@ -2,3 +2,5 @@
 _site/
 .jupyter_cache/
 .ipynb_checkpoints/
+
+/.quarto/

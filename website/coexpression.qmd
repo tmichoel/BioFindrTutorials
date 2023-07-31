@@ -1,7 +1,5 @@
 ---
 title: "Coexpression analysis"
-author: "Tom Michoel"
-date: "06/23/2023"
 format:
   html:
     code-fold: false
@@ -11,9 +9,9 @@ execute:
 ---
 ## Introduction
 
-While [Findr][1] is developed primarily for causal inference from genomics and transcriptomics data, coexpression analysis of transcriptomics data alone is also possible. In coexpression analysis, pairwise correlation is used as a simple measure for the probability of two genes being functionally related either through direct or indirect regulation, or through coregulation by a third factor. In [Findr][1], significance of pairwise correlation is computed using a gene-specific background distribution, allowing for genes having different biological roles. For instance, it is known that so-called "hub genes" have a high number of interaction partners while other genes only have few. In [Findr][1], this is accomodated by modelling the distribution of correlation values between a given gene $A$ and all other genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null $B$ gene for a given $A$ gene, and is fitted for every $A$ gene separately.
+While [Findr.jl][1] is developed primarily for causal inference from genomics and transcriptomics data, coexpression analysis of transcriptomics data alone is also possible. In coexpression analysis, pairwise correlation is used as a simple measure for the probability of two genes being functionally related either through direct or indirect regulation, or through coregulation by a third factor. In [Findr.jl][1], significance of pairwise correlation is computed using a gene-specific background distribution, allowing for genes having different biological roles. For instance, it is known that so-called "hub genes" have a high number of interaction partners while other genes only have few. In [Findr.jl][1], this is accomodated by modelling the distribution of correlation values between a given gene $A$ and all other genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null $B$ gene for a given $A$ gene, and is fitted for every $A$ gene separately.
 
-We will illustrate how to run coexpression analysis with [Findr][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.
+We will illustrate how to run coexpression analysis with [Findr.jl][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.
 
 ## Setup the environment
 
@@ -36,16 +34,16 @@ using Findr
 
 ## Load expression data
 
-[Findr][1] expects that expression data are stored a [DataFrame][4] where columns correspond to variables (genes) and rows to samples. An expression [DataFrame][4] should not contain any other columns (e.g. gene annotation) than gene expression columns, and gene expression data should be stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). Internally, [Findr][1] operates on matrices, and if you have an expression [DataFrame][4] `df`, then `Matrix(df)` should return a matrix of floats.
+[Findr.jl][1] expects that expression data are stored a [DataFrame][4] where columns correspond to variables (genes) and rows to samples. An expression [DataFrame][4] should not contain any other columns (e.g. gene annotation) than gene expression columns, and gene expression data should be stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). Internally, [Findr.jl][1] operates on matrices, and if you have an expression [DataFrame][4] `df`, then `Matrix(df)` should return a matrix of floats.
 
-At the moment, [Findr][1] does not support count-based expression data being provided as a [DataFrame][4] of integers. This is not an intrinsic limitation of the method, but simply to distinguish expression data from integer-valued genotype data. Future versions will remove this limitation by supporting [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/).
+At the moment, [Findr.jl][1] does not support count-based expression data being provided as a [DataFrame][4] of integers. This is not an intrinsic limitation of the method, but simply to distinguish expression data from integer-valued genotype data. Future versions will remove this limitation by supporting [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/).
 
 This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called `dt`, and one for microRNA (miRNA) expression data called `dm`:
 
 ```{julia}
-fname = datadir("exp_pro","findr-data-geuvadis", "dt.arrow");
+fname = datadir("exp_pro","Findr-data-geuvadis", "dt.arrow");
 dt = DataFrame(Arrow.Table(fname));
-fname = datadir("exp_pro","findr-data-geuvadis", "dm.arrow");
+fname = datadir("exp_pro","Findr-data-geuvadis", "dm.arrow");
 dm = DataFrame(Arrow.Table(fname));
 ```
 
@@ -63,7 +61,7 @@ We can confirm that the data frames are of the right type:
 [typeof(Matrix(dt)) typeof(Matrix(dm))]
 ```
 
-## Run Findr
+## Run Findr.jl
 
 ### All-vs-all coexpression analysis
 
@@ -73,7 +71,7 @@ The simplest type of coexpression analysis tests for non-zero correlation among 
 dP_mir_all = Findr.findr(dm, FDR=0.05)
 ```
 
-[1]: https://github.com/tmichoel/Findr.jl
-[2]: https://github.com/lingfeiwang/findr-data-geuvadis
+[1]: https://github.com/tmichoel/Findr.jl.jl
+[2]: https://github.com/lingfeiwang/Findr.jl-data-geuvadis
 [3]: https://doi.org/10.1038/nature12531
 [4]: https://dataframes.juliadata.org/stable/
