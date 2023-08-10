@@ -12,6 +12,8 @@ Clone repo
 
 dev Findr-dir
 
+develop https://github.com/tmichoel/Findr.jl
+
 ## Install the FindrTutorials repository
 
 The [FindrTutorials repository](https://github.com/tmichoel/FindrTutorials) uses [DrWatson](https://juliadynamics.github.io/DrWatson.jl/stable/)

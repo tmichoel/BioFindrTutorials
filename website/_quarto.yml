@@ -16,8 +16,9 @@ website:
       - section: "First steps"
         contents:
           - coexpression.qmd
-          - differential-expression.qmd
+          - association.qmd
           - causal-inference.qmd
+      - section: "Advanced topics"
 
 
 format:
