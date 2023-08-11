@@ -19,6 +19,10 @@ website:
           - association.qmd
           - causal-inference.qmd
       - section: "Advanced topics"
+        contents: 
+          - functions.qmd
+          - matrix-data.qmd
+          - parallelization.qmd
 
 
 format:

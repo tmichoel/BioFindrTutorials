@@ -66,7 +66,7 @@ We can confirm that the data frames are of the right type:
 The simplest type of coexpression analysis tests for non-zero correlation among all possible pairs in a gene expression dataset. Let's do this for the miRNA data:
 
 ```{julia}
-dP_mir_all = Findr.findr(dm, FDR=0.05)
+dP_mir_all = findr(dm, FDR=0.05)
 ```
 
 Findr computes a [posterior probability](https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/) of non-zero correlation for every **Source** and **Target** gene pair. By default the output is sorted by decreasing **Probability** and self-interactions are excluded. The optional parameter **FDR** can be used to limit the output to the set of pairs that has a [global false discovery rate (FDR)](https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure) less than a desired value. The **qvalue** column in the output can be used for further filtering of the output. Say you ran findr with an FRD threshold of 5% as above. If you now want to restrict the output to an FDR threshold of 1%, you can do:
@@ -98,7 +98,7 @@ mir200 = names(dm)[startswith.(names(dm),"hsa-miR-200")]
 Then run
 
 ```{julia}
-dP_mir200_mir = Findr.findr(dm, colnames=mir200, FDR=0.01)
+dP_mir200_mir = findr(dm, colnames=mir200, FDR=0.01)
 ```
 
 The parameter **colnames** must be a vector of strings containing a subset of variable names of the input DataFrame **dm** to be used as **Source** genes.
@@ -106,7 +106,7 @@ The parameter **colnames** must be a vector of strings containing a subset of va
 As an example of the second scenario, we may be interested in finding genes that are significantly correlated with all or a subset of microRNAs: 
 
 ```{julia}
-dP_mir_mrna = Findr.findr(dt, dm, FDR=0.01)
+dP_mir_mrna = findr(dt, dm, FDR=0.01)
 ```
 
 Note the order of the arguments: here we tested all microRNAs as $A$ or Source genes (`dm` argument) against all mRNA transcripts as $B$ or Target genes (`dt` argument), that is, background distributions are fitted for each microRNA (column of `dm`) from the log-likelihood ratios for all 23,722 mRNAs (columns of `dt`).

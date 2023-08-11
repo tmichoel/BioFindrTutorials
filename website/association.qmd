@@ -61,7 +61,7 @@ dgm = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dgm.arrow"
 Assume we are interested in identifying mRNA genes whose expression levels are associated to microRNA eQTLs. We run:
 
 ```{julia}
-dP = Findr.findr(dt, dgm, FDR=0.05)
+dP = findr(dt, dgm, FDR=0.05)
 ```
 
 Findr computes a [posterior probability](https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/) of non-zero association for every **Source** variant (columns of `dgm`) and **Target** gene (columns of `dt`). By default the output is sorted by decreasing **Probability**. The optional parameter **FDR** can be used to limit the output to the set of pairs that has a [global false discovery rate (FDR)](https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure) less than a desired value (here set to 5%). The **qvalue** column in the output can be used for further filtering of the output, see the [coexpression analysis tutorial](coexpression.qmd) for further details.
