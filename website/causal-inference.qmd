@@ -118,29 +118,33 @@ As indicated above, causal inference requires the combination of multiple statis
 
 #### Instrumental variables (default)
 
-The *instrumental variables* (IV) test combination infers a causal $A\to B$ interaction if there is a genetic association $E\to B$, where $E$ is the causal anchor (best cis-eQTL for $A$), and if $A$ and $B$ are not independently associated with $E$ (no pleiotropic effect). This test combination has been shown to provide a good balance between false negative and false positive rate and has a clear genetic interpretation. It is therefore recommended and set as the default combination: 
+The *instrumental variables* (IV) test combination infers a causal $A\to B$ interaction if there is a genetic association $E\to B$, where $E$ is the causal anchor (best cis-eQTL for $A$), and if $A$ and $B$ are not independently associated with $E$ (no pleiotropic effect). This test combination has been shown to provide a good balance between false negative and false positive rate and has a clear genetic interpretation. It is therefore recommended as the default combination. To use the instrumental variable test combination, you don't need to do anything (it's the default): 
 
 ```{julia}
 dP = findr(dm, dgm, dpm; FDR=0.1);
 ```
 
-or, equivalently:
+or, you can explicitly set the optional parameter `combination="IV"`:
 
 ```{julia}
-dP = findr(dm, dgm, dpm; FDR=0.1, combination="IV")
+dP = findr(dm, dgm, dpm; FDR=0.1, combination="IV");
 ```
 
 #### Mediation
 
-The *mediation test* infers a causal $A\to B$ interaction if there is a genetic association $E\to B$ and if this association disappears after conditioning on $A$. If these two tests are true, the causal graph must be $E\to A\to B$. As a result, this test combination has a very low false positive rate, but in most applications it is hampered by a high false negative rate: if $A$ and $B$ are jointly regulated by a third factor $C$, the mediation test will fail even in the presence of a true $A\to B$ interaction. To use the mediation test combination, run:
+The *mediation test* infers a causal $A\to B$ interaction if there is a genetic association $E\to B$ and if this association disappears after conditioning on $A$. If these two tests are true, the causal graph must be $E\to A\to B$. As a result, this test combination has a very low false positive rate, but in most applications it is hampered by a high false negative rate: if $A$ and $B$ are jointly regulated by a third factor $C$, the mediation test will fail even in the presence of a true $A\to B$ interaction. To use the mediation test combination, set the optional parameter `combination="mediation"`:
 
 ```{julia}
-dP = findr(dm, dgm, dpm; FDR=0.1, combination="mediation")
+dP_med = findr(dm, dgm, dpm; FDR=0.1, combination="mediation");
 ```
 
 #### Original Findr combination
 
-In the [original Findr paper][5]
+In the [original Findr paper][5], a new test combination was proposed that combines the instrumental variable test combination with a new [relevance test](https://tmichoel.github.io/Findr.jl/dev/realLLR/#Relevance-test). On simulated data, this new combination further reduced the false negative rate compared to the IV combination. at the expense of an increased false positive rate, for an overall improved performance. However, the relevance test does not have a clear genetic or causal interpretation, and on real data, performance is generally equivalent to the IV combination, and therefore the IV combination is now recommended as the default. To use the original Findr test combination, set the optional parameter `combination="orig"`:
+
+```{julia}
+dP_orig = findr(dm, dgm, dpm; FDR=0.1, combination="orig");
+```
 
 [1]: https://github.com/tmichoel/Findr.jl
 [2]: https://github.com/lingfeiwang/findr-data-geuvadis

@@ -1,18 +1,39 @@
 ---
 title: "Installation"
+execute: 
+  eval: false
 ---
 
 ## Install Julia
 
+To install [Julia](https://julialang.org/), follow the [Getting Started](https://docs.julialang.org/en/v1/manual/getting-started/) instructions.
+
 ## Install Quarto
+
+These tutorials are written in [Quarto](https://quarto.org/). You don't need Quarto if you only want to play with the notebooks, but you will need it if you want to reprodcue this website locally. See the [Get Started](https://quarto.org/docs/get-started/) page for installation instructions.
+
+## Install IJulia
+
+To run the tutorial notebooks, you need [IJulia](https://github.com/JuliaLang/IJulia.jl). If you installed Quarto, follow [these instructions](https://quarto.org/docs/computations/julia.html#installation) to make sure Quarto can use IJulia to render documents with embedded Julia code.
 
 ## Install Findr.jl
 
-Clone repo
+[Findr.jl][1] is not yet a [registered package](https://github.com/JuliaRegistries/General). To install it, follow the [instructions for adding unregistered packages](https://pkgdocs.julialang.org/v1/managing-packages/#Adding-unregistered-packages). If you're new to using [Pkg](https://pkgdocs.julialang.org/v1/),  Julia's package manager, see the [Getting Started](https://pkgdocs.julialang.org/v1/getting-started/) notes. 
 
-dev Findr-dir
+Open a Julia console and enter the Pkg REPL by pressing `]` from the Julia REPL. Then:
 
-develop https://github.com/tmichoel/Findr.jl
+
+```julia
+pkg> add https://github.com/tmichoel/Findr.jl
+```
+
+or if you want to use the SSH-based `git` protocol:
+
+```julia
+pkg> add "git@github.com:tmichoel/Findr.jl.git"
+```
+
+
 
 ## Install the FindrTutorials repository
 
@@ -50,3 +71,5 @@ The `scripts` folder of the project contains a number of files named `process_da
 ## Run the tutorials
 
 You are now all set up to run the tutorials. You can either work directly with the `*.qmd` files in the `website` folder, or use the [jupyter](https://jupyter.org/) notebooks (`*.ipynb` files) in the `notebooks` folder. Make sure to have [IJulia](https://julialang.github.io/IJulia.jl/stable/) installed if using the latter option.
+
+[1]: https://github.com/tmichoel/Findr.jl
