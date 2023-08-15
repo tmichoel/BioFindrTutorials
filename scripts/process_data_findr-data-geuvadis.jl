@@ -11,7 +11,7 @@ using Printf
 #===================
 Read data
 
-Note: because julia is column-major, and most of our analyses work on gene expression profiles across samples, expression data is stored with genes as columns and samples as rows
+Note: because julia is column-major, and most of our analyses work on gene expression profiles across samples, expression data is stored with genes as columns and samples as rows.
 ====================#
 
 # Read mrna expression data from exp_raw folder

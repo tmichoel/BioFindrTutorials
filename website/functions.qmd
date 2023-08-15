@@ -1,5 +1,11 @@
 ---
 title: "Internal functions"
+format:
+  html:
+    code-fold: false
+jupyter: julia-1.9
+execute: 
+  cache: true
 ---
 ## Introduction
 
@@ -8,7 +14,108 @@ The only function [exported](https://docs.julialang.org/en/v1/manual/modules/#Ex
 ![LLR distribution of the relevance test for hsa-miR-200b-3p on 23722 potential targets of Geuvadis dataset.](figures/eg4.png)
 
 
+## Set up the environment
 
+```{julia}
+using DrWatson
+quickactivate(@__DIR__)
+
+using DataFrames
+using Arrow
+using Statistics
+using LinearAlgebra
+using StatsPlots
+using Markdown
+
+using Findr
+```
+
+## Load data
+
+You should by now be familiar with the GEUVADIS data used in the *First steps* tutorials. Here we need the following files:
+
+```{julia}
+dt = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dt.arrow")));
+dm = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dm.arrow")));
+dgm = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dgm.arrow")));
+```
+
+We also need the microRNA eQTL mapping (see the [causal inference tutorial](causal-inference.qmd)):
+
+```{julia}
+dpm = DataFrame(SNP_ID = names(dgm), GENE_ID=names(dm)[1:ncol(dgm)]);
+```
+
+Set the microRNA-of-interest:
+
+```{julia}
+mirA = "hsa-miR-200b-3p";
+```
+
+## Run the analysis
+
+### Convert the data
+
+Internally, all [Findr.jl][1] functions use matrix-based inputs and [supernormalized data](https://tmichoel.github.io/Findr.jl/dev/inference/). The easiest way to convert our data is to run `supernormalize` on the initial data:
+
+```{julia}
+Yt = Findr.supernormalize(dt);
+Ym = vec(Findr.supernormalize(select(dm,mirA)));
+```
+
+For the genotype data, no conversion is needed:
+
+```{julia}
+E = dgm[:, dpm.SNP_ID[dpm.GENE_ID.==mirA][1]];
+```
+
+We will also need the number of samples and number of genotype groups:
+
+```{julia}
+ns = length(E);
+ng = length(unique(E));
+```
+
+### Compute log-likelihood ratios
+
+Throughout the package, the [likelihood ratio tests](https://tmichoel.github.io/Findr.jl/dev/realLLR/) are labelled by the following [symbols](https://docs.julialang.org/en/v1/manual/metaprogramming/#Symbols)
+
+- Test 2 (**Linkage test**): `:link`
+- Test 3 (**Mediation test**): `:med`
+- Test 4 (**Relevance test**): `:relev`
+- Test 5 (**Pleiotropy test**): `:pleio`
+
+Since [all log-likelihood ratios are computed from the same summary statistics](https://tmichoel.github.io/Findr.jl/dev/realLLR/#Implementation), a single function computes them all. To compute the log-likelihood ratios for a specific A-gene (here: hsa-miR-200b-3p with column vector of expression data `Ym`) with a causal instrument (best eQTL) with genotype vector `E`, run:
+
+```{julia}
+llr2, llr3, llr4, llr5 = Findr.realLLR_col(Yt, Ym, E);
+```
+
+If you know you're only going to use one of them, you can also run:
+
+```{julia}
+_ , _ , llr4 , _ = Findr.realLLR_col(Yt, Ym, E);
+```
+
+### Compute posterior probabilities
+
+Posterior probabilities are computed by [fitting a mixture model](https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/) to the observed vector of log-likelihood ratios. Two fitting methods are implmented: a [method of moments](https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/#mom_postprobs) or using [kernel density estimation](https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/#kde_postprobs). The method of moments is the default:
+
+```{julia}
+pp_mom, dmix = Findr.fit_mixdist_mom(llr4, ns, ng, :relev);
+```
+
+The KDE estimate is obtained similarly:
+
+```{julia}
+pp_kde = Findr.fit_mixdist_KDE(llr4, ns, ng, :relev);
+```
+
+The method of moments has a second output argument, `dmix`, a [mixture model distribution object](https://juliastats.org/Distributions.jl/stable/mixture/) where each mixture component is an [`LBeta` dsitribution](https://tmichoel.github.io/Findr.jl/dev/randomLLR/#Implementation):
+
+```{julia}
+dmix
+```
 
 [1]: https://github.com/tmichoel/Findr.jl
 [2]: https://github.com/lingfeiwang/findr-data-geuvadis

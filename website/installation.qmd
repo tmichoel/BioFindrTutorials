@@ -8,9 +8,14 @@ execute:
 
 To install [Julia](https://julialang.org/), follow the [Getting Started](https://docs.julialang.org/en/v1/manual/getting-started/) instructions.
 
-## Install Quarto
+## Install Quarto (optional)
 
 These tutorials are written in [Quarto](https://quarto.org/). You don't need Quarto if you only want to play with the notebooks, but you will need it if you want to reprodcue this website locally. See the [Get Started](https://quarto.org/docs/get-started/) page for installation instructions.
+
+## Install the Julia extension for your favourite editor/IDE (optional)
+
+Extensions or plugings for [VS Code](https://www.julia-vscode.org/), [Emacs](https://github.com/JuliaEditorSupport/julia-emacs), and [VIM](https://github.com/JuliaEditorSupport/julia-vim) are linked from the [Julia homepage](https://julialang.org/)
+
 
 ## Install IJulia
 
@@ -44,9 +49,9 @@ to make a reproducible scientific project named
 
 To (locally) reproduce this project, do the following:
 
-0. Download this code base. Notice that raw data are not included in the
+1. Download this code base. Notice that raw data are not included in the
    git-history and need to be downloaded independently (see below).
-1. Open a Julia console and do:
+2. Open a Julia console and do:
    ```
    julia> using Pkg
    julia> Pkg.add("DrWatson") # install globally, for using `quickactivate`
@@ -66,10 +71,36 @@ which auto-activate the project and enable local path handling from DrWatson.
 
 ## Download and preprocess data
 
-The `scripts` folder of the project contains a number of files named `process_data_*`. The header of each script explains where to download raw data from and where to save them in the `exp_raw` folder. You can then run the script to produce processed data files in the [Apache Arrow](https://arrow.apache.org/) format, which will be stored in the `exp_pro` folder.
+The `scripts` folder of the project contains a number of files named `process_data_*`. After downloading the initial data files (see below), you can then run the script to produce processed data files in the [Apache Arrow](https://arrow.apache.org/) format, which will be stored in the `exp_pro` folder.
+
+
+
+### GEUVADIS data
+
+1. Download [preprocessed data files][2] from the [GEUVADIS study][3].
+2. Save all files in the folder `exp_raw/findr-data-geuvadis`.
+3. Concatenate the transcript files:
+
+   ```
+   $ cat dt1.csv.gz dt2.csv.gz > dt.csv.gz
+   ```
+4. Unzip all `.gz` files.
+5. Create a folder `exp_pro/findr-data-geuvadis` (sorry, not very clean that this isn't automated).
+6. Run the script `process_data_findr-data-geuvadis.jl`. You can either run it from the command line:
+
+   ```
+   $ julia scripts/process_data_findr-data-geuvadis.jl
+   ```
+
+   or open the file and run it interactively in your editor/IDE of choice. See [Running Code](https://www.julia-vscode.org/docs/stable/userguide/runningcode/) for more information about how to this in VS Code.
+7. Verify that the directory `exp_pro/findr-data-geuvadis` contains matched `.arrow` files for each `.csv` file in the `exp_raw/findr-data-geuvadis` folder.
 
 ## Run the tutorials
 
 You are now all set up to run the tutorials. You can either work directly with the `*.qmd` files in the `website` folder, or use the [jupyter](https://jupyter.org/) notebooks (`*.ipynb` files) in the `notebooks` folder. Make sure to have [IJulia](https://julialang.github.io/IJulia.jl/stable/) installed if using the latter option.
 
 [1]: https://github.com/tmichoel/Findr.jl
+[2]: https://github.com/lingfeiwang/findr-data-geuvadis
+[3]: https://doi.org/10.1038/nature12531
+[4]: https://dataframes.juliadata.org/stable/
+[5]: https://doi.org/10.1371/journal.pcbi.1005703
