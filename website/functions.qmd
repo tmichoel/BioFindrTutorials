@@ -25,7 +25,9 @@ using Arrow
 using Statistics
 using LinearAlgebra
 using StatsPlots
+using LaTeXStrings
 using Markdown
+using Distributions
 
 using Findr
 ```
@@ -46,7 +48,7 @@ We also need the microRNA eQTL mapping (see the [causal inference tutorial](caus
 dpm = DataFrame(SNP_ID = names(dgm), GENE_ID=names(dm)[1:ncol(dgm)]);
 ```
 
-Set the microRNA-of-interest:
+Set the microRNA of interest:
 
 ```{julia}
 mirA = "hsa-miR-200b-3p";
@@ -115,6 +117,68 @@ The method of moments has a second output argument, `dmix`, a [mixture model dis
 
 ```{julia}
 dmix
+```
+
+The first component in the mixture model is the null distribution, which can also be created as follows:
+
+```{julia}
+dnull = Findr.nulldist(ns,ng,:relev)
+```
+
+The `prior` of the null component is the [estimated proportion of truly null features](https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/#Estimating-P({\\mathcal-H}_{\\mathrm{null}})) in the observed log-likelihood ratio vector `llr4`:
+
+```{julia}
+π₀ = dmix.prior.p[1]
+```
+
+We can verify that both methods (moments and KDE) give similar posterior probabilities
+
+```julia
+scatter(pp_mom,pp_kde, markersize=4)
+```
+
+### Compute p-values under the null hypothesis
+
+We don't need null p-values to reproduce the figure above, but they can be used to assess the quality of the $\pi_0$ estimate.
+
+```{julia}
+pnull = Findr.nullpval(llr4,ns,ng,:relev);
+```
+
+We can verify that the histogram shows the [characteristic shape of a set of anti-conservative p-values](http://varianceexplained.org/statistics/interpreting-pvalue-histogram/) and that $\pi_0$ correctly estimates the height of the "flat" portion of the histogram near $p\approx 1$:
+
+
+```{julia}
+histogram(pnull, normalize=:pdf, bins=100, label="")
+hline!([π₀],linewidth=2, label="", linecolor=:red)
+xlims!(0,1)
+xlabel!("Null p-value")
+ylabel!("Observed distribution")
+annotate!(0.95,0.95, (L"\pi_0", 18, :red))
+```
+
+## Reproduce the figure
+
+Because the null and real log-likelihood ratio distribution are available in the form of [distribution objects](https://juliastats.org/Distributions.jl/), we can simply evaluate their pdfs on a range of values:
+
+```{julia}
+lval = range(0,maximum(llr4),500);
+pnull_val = π₀ * pdf.(dnull,lval);
+preal_val = pdf.(dmix,lval);
+pp_val = 1 .- pnull_val ./ preal_val;
+```
+
+```{julia}
+histogram(llr4, normalize=:pdf, bins=100, color=:navajowhite1, label="Real data", size=(600,450))
+plot!(lval,preal_val, linewidth=2, color=:black, label=L"p(LLR^{(4)})")
+plot!(lval,pnull_val, linewidth=2, color=:red, label=L"\pi_0 p(LLR^{(4)} \mid \mathcal{H}_0)", legend=(0.25,0.95))
+ylims!(0, 160)
+xlabel!(L"LLR^{(4)}")
+ylabel!(L"p(LLR^{(4)})")
+plot!(twinx(),lval,pp_val, linewidth=2, color=:blue, label="", yguidefontcolor=:blue, ylims=(0,1.), ylabel=L"P(H^{(4)}_{alt} \mid LLR^{(4)})")
+#ylabel(L"P(H^{(4)}_{alt} \mid LLR^{(4)})")
+xlims!(0,0.03)
+
 ```
 
 [1]: https://github.com/tmichoel/Findr.jl
