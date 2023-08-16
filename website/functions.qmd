@@ -159,7 +159,9 @@ annotate!(0.95,0.95, (L"\pi_0", 18, :red))
 
 ## Reproduce the figure
 
-Because the null and real log-likelihood ratio distribution are available in the form of [distribution objects](https://juliastats.org/Distributions.jl/), we can simply evaluate their pdfs on a range of values:
+### Method of moments estimates
+
+For the method of moments, the null and real log-likelihood ratio distribution are available in the form of [distribution objects](https://juliastats.org/Distributions.jl/), and we can simply evaluate their pdfs on a range of values:
 
 ```{julia}
 lval = range(0,maximum(llr4),500);
@@ -167,6 +169,8 @@ pnull_val = π₀ * pdf.(dnull,lval);
 preal_val = pdf.(dmix,lval);
 pp_val = 1 .- pnull_val ./ preal_val;
 ```
+
+Plot the final figure:
 
 ```{julia}
 histogram(llr4, normalize=:pdf, bins=100, color=:navajowhite1, label="Real data", size=(600,450))
@@ -178,7 +182,38 @@ ylabel!(L"p(LLR^{(4)})")
 plot!(twinx(),lval,pp_val, linewidth=2, color=:blue, label="", yguidefontcolor=:blue, ylims=(0,1.), ylabel=L"P(H^{(4)}_{alt} \mid LLR^{(4)})")
 #ylabel(L"P(H^{(4)}_{alt} \mid LLR^{(4)})")
 xlims!(0,0.03)
+```
 
+Compared to the figure at the top of the page, we see that the method of moments provides a smooth fit to the histogram and consequently also posterior probabilities that increase more smoothly with increasing LLR values. 
+
+### KDE estimates
+
+For the KDE method, we don't have a distribution object fitting the histogram. Instead with use kernel density estimation and return estimated pdf values at every value of the LLR input vector:
+
+```{julia}
+preal_kde = Findr.fit_kde(llr4);
+```
+For plotting, we filter a relevant range of values from all vectors:
+
+```{julia}
+rg = 1:50:length(llr4);
+t = sortperm(llr4);
+lval_kde = llr4[t][rg];
+preal_val_kde = preal_kde[t][rg];
+pp_val_kde = pp_kde[t][rg];
+```
+And plot the figure again:
+
+```{julia}
+histogram(llr4, normalize=:pdf, bins=100, color=:navajowhite1, label="Real data", size=(600,450))
+plot!(lval_kde,preal_val_kde, linewidth=2, color=:black, label=L"p(LLR^{(4)})")
+plot!(lval,pnull_val, linewidth=2, color=:red, label=L"\pi_0 p(LLR^{(4)} \mid \mathcal{H}_0)", legend=(0.25,0.95))
+ylims!(0, 160)
+xlabel!(L"LLR^{(4)}")
+ylabel!(L"p(LLR^{(4)})")
+plot!(twinx(),lval_kde,pp_val_kde, linewidth=2, color=:blue, label="", yguidefontcolor=:blue, ylims=(0,1.), ylabel=L"P(H^{(4)}_{alt} \mid LLR^{(4)})")
+#ylabel(L"P(H^{(4)}_{alt} \mid LLR^{(4)})")
+xlims!(0,0.03)
 ```
 
 [1]: https://github.com/tmichoel/Findr.jl
