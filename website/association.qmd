@@ -6,6 +6,7 @@ format:
 jupyter: julia-1.9
 execute: 
   cache: true
+  keep-ipynb: true
 ---
 ## Introduction
 
@@ -23,11 +24,6 @@ quickactivate(@__DIR__)
 
 using DataFrames
 using Arrow
-using Statistics
-using StatsBase
-using LinearAlgebra
-using StatsPlots
-using Markdown
 
 using Findr
 ```
