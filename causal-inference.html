@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.361">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Findr Tutorials - Causal inference</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Findr Tutorials</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools ms-auto">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./coexpression.html">First steps</a></li><li class="breadcrumb-item"><a href="./causal-inference.html">Causal inference</a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./installation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Installation</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">First steps</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coexpression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Coexpression analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./association.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Association analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./causal-inference.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Causal inference</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text">Advanced topics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Internal functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./matrix-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Matrix-based data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./parallelization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parallelization</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#set-up-the-environment" id="toc-set-up-the-environment" class="nav-link" data-scroll-target="#set-up-the-environment">Set up the environment</a></li>
+  <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data">Load data</a>
+  <ul class="collapse">
+  <li><a href="#expression-data" id="toc-expression-data" class="nav-link" data-scroll-target="#expression-data">Expression data</a></li>
+  <li><a href="#genotype-data" id="toc-genotype-data" class="nav-link" data-scroll-target="#genotype-data">Genotype data</a></li>
+  <li><a href="#eqtl-mapping-data" id="toc-eqtl-mapping-data" class="nav-link" data-scroll-target="#eqtl-mapping-data">eQTL mapping data</a></li>
+  </ul></li>
+  <li><a href="#run-findr.jl" id="toc-run-findr.jl" class="nav-link" data-scroll-target="#run-findr.jl">Run Findr.jl</a>
+  <ul class="collapse">
+  <li><a href="#subset-to-all-causal-inference" id="toc-subset-to-all-causal-inference" class="nav-link" data-scroll-target="#subset-to-all-causal-inference">Subset-to-all causal inference</a></li>
+  <li><a href="#bipartite-causal-inference" id="toc-bipartite-causal-inference" class="nav-link" data-scroll-target="#bipartite-causal-inference">Bipartite causal inference</a></li>
+  <li><a href="#causal-test-combinations" id="toc-causal-test-combinations" class="nav-link" data-scroll-target="#causal-test-combinations">Causal test combinations</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Causal inference</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>The primary use of <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> is for causal inference from genomics and transcriptomics data. In causal inference, cis-acting eQTLs are used as causal anchors or instrumental variables to orient the direction of causality between coexpressed genes, see the <a href="https://doi.org/10.1371/journal.pcbi.1005703">Findr paper</a> for more details. As in <a href="./coexpression.html">coexpression analysis</a> and <a href="./association.html">association analysis</a>, the significance of a causal effect is computed using a gene-specific background distribution. This is again achieved by modelling the distribution of test statistics between a given gene <span class="math inline">\(A\)</span> and all other genes <span class="math inline">\(B\)</span> as a <a href="https://en.wikipedia.org/wiki/Mixture_distribution">mixture distribution</a> of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null <span class="math inline">\(B\)</span> gene for a given <span class="math inline">\(A\)</span> gene, and is fitted for every <span class="math inline">\(A\)</span> gene separately.</p>
+<p>Unlike in <a href="./coexpression.html">coexpression analysis</a> and <a href="./association.html">association analysis</a>, causal inference cannot be performed using a single statistical test, but requires the combination of multiple tests. In <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a>, <a href="https://tmichoel.github.io/Findr.jl/dev/realLLR/">six likelihood ratio tests</a> are implemented, which can be combined in multiple ways for causal inference. Tests are combined by addition or mulitplication of the <a href="https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/">posterior probabilities</a> of individial tests, an approach first proposed in <a href="https://doi.org/10.1186/gb-2007-8-10-r219">this paper</a>.</p>
+<p>We will illustrate how to run causal inference with <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> using <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed data</a> from the <a href="https://doi.org/10.1038/nature12531">GEUVADIS study</a>. See the <a href="./installation.html">installation instructions</a> for the steps you need to take to reproduce this tutorial.</p>
+</section>
+<section id="set-up-the-environment" class="level2">
+<h2 class="anchored" data-anchor-id="set-up-the-environment">Set up the environment</h2>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quickactivate</span>(<span class="pp">@__DIR__</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DataFrames</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Arrow</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Findr</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="load-data" class="level2">
+<h2 class="anchored" data-anchor-id="load-data">Load data</h2>
+<section id="expression-data" class="level3">
+<h3 class="anchored" data-anchor-id="expression-data">Expression data</h3>
+<p><a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> expects that expression data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">floating-point numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genes) and rows to samples, see the <a href="./coexpression.html">coexpression analysis tutorial</a> for more details.</p>
+<p>This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called <code>dt</code>, and one for microRNA (miRNA) expression data called <code>dm</code>:</p>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dt.arrow"</span>)));</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>dm <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dm.arrow"</span>)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="genotype-data" class="level3">
+<h3 class="anchored" data-anchor-id="genotype-data">Genotype data</h3>
+<p><a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> expects that genotype data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">integer numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genetic variants) and rows to samples. <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> uses a categorical model to associate genetic variation to variation in gene expression, hence how different genotypes (e.g.&nbsp;heterozygous vs.&nbsp;homozygous) are encoded as integers does not matter. Future versions will support <a href="https://juliaai.github.io/ScientificTypes.jl/dev/">scientific types</a> for representing genotype data.</p>
+<p>This tutorial uses two tables of expression data from the same set of samples, one with genotypes for mRNA eQTLs called <code>dgt</code>, and one for microRNA (miRNA) eQTLs called <code>dgm</code>:</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>dgt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgt.arrow"</span>)));</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>dgm <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgm.arrow"</span>)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="eqtl-mapping-data" class="level3">
+<h3 class="anchored" data-anchor-id="eqtl-mapping-data">eQTL mapping data</h3>
+<p>The <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed GEUVADIS data</a> has been organized such that each column of the genotype data is the strongest eQTLs for the corresponding column in the matching expression data. Usually however, eQTL mapping data will be available in the form of a table with variant IDs, gene IDs, and various eQTL associaion statistics (see the <a href="https://www.ebi.ac.uk/biostudies/files/E-GEUV-1/E-GEUV-1/analysis_results/EUR373.gene.cis.FDR5.all.rs137.txt.gz">original GEUVADIS file</a> for an example). <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> expects that such a table is read into a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a>, and that only the best (most strongly associated) eQTL is kept for each gene, that is, genes appear only once in the eQTL mapping table. Let’s artificially create such tables for our data:</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>dpt <span class="op">=</span> <span class="fu">DataFrame</span>(SNP_ID <span class="op">=</span> <span class="fu">names</span>(dgt), GENE_ID<span class="op">=</span><span class="fu">names</span>(dt)[<span class="fl">1</span><span class="op">:</span><span class="fu">ncol</span>(dgt)]);</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>dpm <span class="op">=</span> <span class="fu">DataFrame</span>(SNP_ID <span class="op">=</span> <span class="fu">names</span>(dgm), GENE_ID<span class="op">=</span><span class="fu">names</span>(dm)[<span class="fl">1</span><span class="op">:</span><span class="fu">ncol</span>(dgm)]);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="run-findr.jl" class="level2">
+<h2 class="anchored" data-anchor-id="run-findr.jl">Run Findr.jl</h2>
+<section id="subset-to-all-causal-inference" class="level3">
+<h3 class="anchored" data-anchor-id="subset-to-all-causal-inference">Subset-to-all causal inference</h3>
+<p>In the most common scenario, we have a dataset of gene expression values, with significant cis-eQTL instruments for a subset of genes (“eGenes”). We can then infer causal interactions from the eGenes to all other genes (including other eGenes). For instance, to infer causal microRNA <span class="math inline">\(\to\)</span> microRNA interaction, run:</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div><div style="float: left;"><span>36×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">11 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header header">
+<th class="rowNumber" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Source</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Target</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Probability</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">qvalue</th>
+</tr>
+<tr class="odd subheader headerLastRow">
+<th class="rowNumber" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: left;">hsa-miR-550a-2-5p</td>
+<td style="text-align: left;">hsa-miR-550a-3-5p</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">0.0</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: left;">hsa-miR-96-5p</td>
+<td style="text-align: left;">hsa-miR-182-5p</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">4.82947e-13</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3</td>
+<td style="text-align: left;">hsa-miR-550a-2-5p</td>
+<td style="text-align: left;">hsa-miR-550a-2-3p</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">2.533e-11</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">4</td>
+<td style="text-align: left;">hsa-miR-550a-2-3p</td>
+<td style="text-align: left;">hsa-miR-550a-3-5p</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.43622e-10</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">5</td>
+<td style="text-align: left;">hsa-miR-3130-1-5p</td>
+<td style="text-align: left;">hsa-miR-3130-2-5p</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">3.59833e-10</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">6</td>
+<td style="text-align: left;">hsa-miR-550a-2-3p</td>
+<td style="text-align: left;">hsa-miR-550a-2-5p</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">8.07521e-10</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">7</td>
+<td style="text-align: left;">hsa-miR-183-5p</td>
+<td style="text-align: left;">hsa-miR-182-5p</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">5.92158e-9</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">8</td>
+<td style="text-align: left;">hsa-miR-30a-3p</td>
+<td style="text-align: left;">hsa-miR-30a-5p</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">4.33738e-8</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">9</td>
+<td style="text-align: left;">hsa-miR-335-5p</td>
+<td style="text-align: left;">hsa-miR-335-3p</td>
+<td style="text-align: right;">0.999997</td>
+<td style="text-align: right;">3.78462e-7</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">10</td>
+<td style="text-align: left;">hsa-miR-30a-5p</td>
+<td style="text-align: left;">hsa-miR-30a-3p</td>
+<td style="text-align: right;">0.999986</td>
+<td style="text-align: right;">1.69667e-6</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">11</td>
+<td style="text-align: left;">hsa-miR-200a-3p</td>
+<td style="text-align: left;">hsa-miR-200b-3p</td>
+<td style="text-align: right;">0.999978</td>
+<td style="text-align: right;">3.55899e-6</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">12</td>
+<td style="text-align: left;">hsa-miR-574-5p</td>
+<td style="text-align: left;">hsa-miR-574-3p</td>
+<td style="text-align: right;">0.999977</td>
+<td style="text-align: right;">5.18541e-6</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">13</td>
+<td style="text-align: left;">hsa-miR-335-3p</td>
+<td style="text-align: left;">hsa-miR-335-5p</td>
+<td style="text-align: right;">0.999935</td>
+<td style="text-align: right;">9.80113e-6</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">25</td>
+<td style="text-align: left;">hsa-miR-3176-3p</td>
+<td style="text-align: left;">hsa-miR-19b-1-3p</td>
+<td style="text-align: right;">0.858206</td>
+<td style="text-align: right;">0.0265815</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">26</td>
+<td style="text-align: left;">hsa-miR-3176-3p</td>
+<td style="text-align: left;">hsa-miR-548ac-5p</td>
+<td style="text-align: right;">0.820578</td>
+<td style="text-align: right;">0.03246</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">27</td>
+<td style="text-align: left;">hsa-miR-3176-3p</td>
+<td style="text-align: left;">hsa-miR-19a-3p</td>
+<td style="text-align: right;">0.771053</td>
+<td style="text-align: right;">0.0397373</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28</td>
+<td style="text-align: left;">hsa-miR-339-5p</td>
+<td style="text-align: left;">hsa-miR-339-3p</td>
+<td style="text-align: right;">0.746762</td>
+<td style="text-align: right;">0.0473623</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">29</td>
+<td style="text-align: left;">hsa-miR-1304-3p</td>
+<td style="text-align: left;">hsa-miR-548ar-5p</td>
+<td style="text-align: right;">0.746114</td>
+<td style="text-align: right;">0.0544838</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">30</td>
+<td style="text-align: left;">hsa-miR-193b-3p</td>
+<td style="text-align: left;">hsa-miR-345-5p</td>
+<td style="text-align: right;">0.73682</td>
+<td style="text-align: right;">0.0614403</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">31</td>
+<td style="text-align: left;">hsa-miR-1304-3p</td>
+<td style="text-align: left;">hsa-miR-194-2-5p</td>
+<td style="text-align: right;">0.736664</td>
+<td style="text-align: right;">0.0679531</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">32</td>
+<td style="text-align: left;">hsa-let-7b-5p</td>
+<td style="text-align: left;">hsa-let-7b-3p</td>
+<td style="text-align: right;">0.734285</td>
+<td style="text-align: right;">0.0741332</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">33</td>
+<td style="text-align: left;">hsa-miR-1307-5p</td>
+<td style="text-align: left;">hsa-miR-1307-3p</td>
+<td style="text-align: right;">0.718379</td>
+<td style="text-align: right;">0.0804207</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">34</td>
+<td style="text-align: left;">hsa-miR-1304-3p</td>
+<td style="text-align: left;">hsa-miR-194-1-5p</td>
+<td style="text-align: right;">0.714601</td>
+<td style="text-align: right;">0.0864494</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">35</td>
+<td style="text-align: left;">hsa-miR-3176-3p</td>
+<td style="text-align: left;">hsa-miR-3181-5p</td>
+<td style="text-align: right;">0.708352</td>
+<td style="text-align: right;">0.0923123</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">36</td>
+<td style="text-align: left;">hsa-miR-3176-3p</td>
+<td style="text-align: left;">hsa-miR-24-1-3p</td>
+<td style="text-align: right;">0.705673</td>
+<td style="text-align: right;">0.0979238</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>Findr computes a <a href="https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/">posterior probability</a> of a non-zero causal interaction for every pair pf <strong>Source</strong> and <strong>Target</strong> genes (columns of <code>dm</code>). The possible <strong>Source</strong> genes are the eGenes, the subset of genes with cis-eQTLs (columns of <code>dgm</code>), as defined by the eQTL-to-gene mapping in <code>dpm</code>.</p>
+<p>By default the output is sorted by decreasing <strong>Probability</strong>. The optional parameter <strong>FDR</strong> can be used to limit the output to the set of pairs that has a <a href="https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure">global false discovery rate (FDR)</a> less than a desired value (here set to 10%). The <strong>qvalue</strong> column in the output can be used for further filtering of the output, see the <a href="./coexpression.html">coexpression analysis tutorial</a> for more details.</p>
+<p>Note the order of input arguments: first <code>dm</code>, the expression data, then <code>dgm</code>, the genotype data, and then <code>dpm</code>, the eQTL mapping of variants to eGenes.</p>
+<p>By default, Findr assumes that the first column of <code>dpm</code> is a list of variant names that can be found in the column names of <code>dgm</code>, and that the second column of <code>dpm</code> is a list of gene names that can be found in the column names of <code>dm</code>:</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>dpm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div><div style="float: left;"><span>55×2 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">30 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header header">
+<th class="rowNumber" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SNP_ID</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">GENE_ID</th>
+</tr>
+<tr class="odd subheader headerLastRow">
+<th class="rowNumber" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: left;">rs201731283</td>
+<td style="text-align: left;">hsa-miR-4804-5p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: left;">rs73933236</td>
+<td style="text-align: left;">hsa-miR-641-5p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3</td>
+<td style="text-align: left;">rs17269517</td>
+<td style="text-align: left;">hsa-miR-2116-3p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">4</td>
+<td style="text-align: left;">rs2273626</td>
+<td style="text-align: left;">hsa-miR-4707-3p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">5</td>
+<td style="text-align: left;">rs174559</td>
+<td style="text-align: left;">hsa-miR-1908-5p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">6</td>
+<td style="text-align: left;">rs7095504</td>
+<td style="text-align: left;">hsa-miR-2110-5p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">7</td>
+<td style="text-align: left;">rs2583391</td>
+<td style="text-align: left;">hsa-miR-1255a-5p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">8</td>
+<td style="text-align: left;">rs5743580</td>
+<td style="text-align: left;">hsa-miR-574-3p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">9</td>
+<td style="text-align: left;">rs143756085</td>
+<td style="text-align: left;">hsa-miR-1270-2-5p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">10</td>
+<td style="text-align: left;">rs17269517_1</td>
+<td style="text-align: left;">hsa-miR-2116-5p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">11</td>
+<td style="text-align: left;">rs11191968</td>
+<td style="text-align: left;">hsa-miR-4482-1-3p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">12</td>
+<td style="text-align: left;">rs8141807</td>
+<td style="text-align: left;">hsa-miR-3667-5p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">13</td>
+<td style="text-align: left;">rs648571</td>
+<td style="text-align: left;">hsa-miR-5680-3p</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">44</td>
+<td style="text-align: left;">rs1378942</td>
+<td style="text-align: left;">hsa-miR-4513-5p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">45</td>
+<td style="text-align: left;">rs768533_1</td>
+<td style="text-align: left;">hsa-miR-3130-1-5p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">46</td>
+<td style="text-align: left;">rs78562044</td>
+<td style="text-align: left;">hsa-miR-30a-3p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">47</td>
+<td style="text-align: left;">rs35671783</td>
+<td style="text-align: left;">hsa-miR-1304-3p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">48</td>
+<td style="text-align: left;">rs2537621</td>
+<td style="text-align: left;">hsa-miR-589-5p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">49</td>
+<td style="text-align: left;">rs6462386</td>
+<td style="text-align: left;">hsa-miR-550a-2-3p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">50</td>
+<td style="text-align: left;">rs745666</td>
+<td style="text-align: left;">hsa-miR-3615-3p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">51</td>
+<td style="text-align: left;">rs817478</td>
+<td style="text-align: left;">hsa-miR-4423-5p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">52</td>
+<td style="text-align: left;">rs73054305</td>
+<td style="text-align: left;">hsa-miR-642a-5p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">53</td>
+<td style="text-align: left;">rs3807344_1</td>
+<td style="text-align: left;">hsa-miR-335-3p</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">54</td>
+<td style="text-align: left;">rs4393680</td>
+<td style="text-align: left;">hsa-miR-4741-3p</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">55</td>
+<td style="text-align: left;">rs2583392</td>
+<td style="text-align: left;">hsa-miR-1255a-3p</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>If your eQTL mapping DataFrame has the relevant columns in a different place, you need to use the optional arguments <code>colX</code> (for the gene expression IDs) and <code>colG</code> (for the eQTL genotype IDs) to specify either the relevant columns index or name:</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; colX<span class="op">=</span><span class="fl">2</span>, colG<span class="op">=</span><span class="fl">1</span>, FDR<span class="op">=</span><span class="fl">0.1</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>or</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; colX<span class="op">=</span><span class="st">"GENE_ID"</span>, colG<span class="op">=</span><span class="st">"SNP_ID"</span>, FDR<span class="op">=</span><span class="fl">0.1</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Any other columns in the eQTL mapping DataFrame (such as association summary statistics) are ignored.</p>
+</section>
+<section id="bipartite-causal-inference" class="level3">
+<h3 class="anchored" data-anchor-id="bipartite-causal-inference">Bipartite causal inference</h3>
+<p>In some applications, we have multiple omics datasets from the same samples, and may be interested in causal inference from one set of variables to another one. In the GEUVADIS study for instance, we may be interested in inferring causal interactions between microRNAs and target genes. To infer interactions <em>from</em> microRNAs <em>to</em> mRNAs, run:</p>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dt, dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div><div style="float: left;"><span>22×4 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header header">
+<th class="rowNumber" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Source</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Target</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Probability</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">qvalue</th>
+</tr>
+<tr class="odd subheader headerLastRow">
+<th class="rowNumber" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: left;">hsa-miR-335-3p</td>
+<td style="text-align: left;">ENSG00000128510.5</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">0.0</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: left;">hsa-miR-335-5p</td>
+<td style="text-align: left;">ENSG00000128510.5</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.11022e-16</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3</td>
+<td style="text-align: left;">hsa-miR-3150b-3p</td>
+<td style="text-align: left;">ENSG00000245080.3</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.52987e-7</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">4</td>
+<td style="text-align: left;">hsa-miR-3150b-3p</td>
+<td style="text-align: left;">ENSG00000175895.3</td>
+<td style="text-align: right;">0.997247</td>
+<td style="text-align: right;">0.000688348</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">5</td>
+<td style="text-align: left;">hsa-miR-335-5p</td>
+<td style="text-align: left;">ENSG00000106484.8</td>
+<td style="text-align: right;">0.991704</td>
+<td style="text-align: right;">0.00220981</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">6</td>
+<td style="text-align: left;">hsa-miR-335-3p</td>
+<td style="text-align: left;">ENSG00000106484.8</td>
+<td style="text-align: right;">0.991704</td>
+<td style="text-align: right;">0.00322411</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">7</td>
+<td style="text-align: left;">hsa-miR-339-5p</td>
+<td style="text-align: left;">ENSG00000224079.1</td>
+<td style="text-align: right;">0.989118</td>
+<td style="text-align: right;">0.00431814</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">8</td>
+<td style="text-align: left;">hsa-miR-574-3p</td>
+<td style="text-align: left;">ENSG00000197712.6</td>
+<td style="text-align: right;">0.981865</td>
+<td style="text-align: right;">0.00604525</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">9</td>
+<td style="text-align: left;">hsa-let-7b-5p</td>
+<td style="text-align: left;">ENSG00000241990.1</td>
+<td style="text-align: right;">0.976618</td>
+<td style="text-align: right;">0.0079715</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">10</td>
+<td style="text-align: left;">hsa-let-7b-5p</td>
+<td style="text-align: left;">ENSG00000197182.8</td>
+<td style="text-align: right;">0.946246</td>
+<td style="text-align: right;">0.0125498</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">11</td>
+<td style="text-align: left;">hsa-miR-574-5p</td>
+<td style="text-align: left;">ENSG00000197712.6</td>
+<td style="text-align: right;">0.930644</td>
+<td style="text-align: right;">0.017714</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">12</td>
+<td style="text-align: left;">hsa-miR-335-5p</td>
+<td style="text-align: left;">ENSG00000220884.2</td>
+<td style="text-align: right;">0.92274</td>
+<td style="text-align: right;">0.0226762</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">13</td>
+<td style="text-align: left;">hsa-miR-335-3p</td>
+<td style="text-align: left;">ENSG00000220884.2</td>
+<td style="text-align: right;">0.92274</td>
+<td style="text-align: right;">0.026875</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14</td>
+<td style="text-align: left;">hsa-miR-1270-2-5p</td>
+<td style="text-align: left;">ENSG00000231205.6</td>
+<td style="text-align: right;">0.892731</td>
+<td style="text-align: right;">0.0326174</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">15</td>
+<td style="text-align: left;">hsa-miR-335-3p</td>
+<td style="text-align: left;">ENSG00000158516.7</td>
+<td style="text-align: right;">0.848667</td>
+<td style="text-align: right;">0.0405318</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">16</td>
+<td style="text-align: left;">hsa-miR-335-5p</td>
+<td style="text-align: left;">ENSG00000158516.7</td>
+<td style="text-align: right;">0.848667</td>
+<td style="text-align: right;">0.0474568</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">17</td>
+<td style="text-align: left;">hsa-miR-574-5p</td>
+<td style="text-align: left;">ENSG00000174123.6</td>
+<td style="text-align: right;">0.837448</td>
+<td style="text-align: right;">0.0542271</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">18</td>
+<td style="text-align: left;">hsa-miR-550a-2-3p</td>
+<td style="text-align: left;">ENSG00000229358.2</td>
+<td style="text-align: right;">0.833727</td>
+<td style="text-align: right;">0.0604519</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">19</td>
+<td style="text-align: left;">hsa-miR-30a-5p</td>
+<td style="text-align: left;">ENSG00000169220.12</td>
+<td style="text-align: right;">0.830649</td>
+<td style="text-align: right;">0.0661834</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">20</td>
+<td style="text-align: left;">hsa-miR-1908-5p</td>
+<td style="text-align: left;">ENSG00000134824.9</td>
+<td style="text-align: right;">0.786188</td>
+<td style="text-align: right;">0.0735649</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">21</td>
+<td style="text-align: left;">hsa-miR-30a-5p</td>
+<td style="text-align: left;">ENSG00000231588.1</td>
+<td style="text-align: right;">0.770527</td>
+<td style="text-align: right;">0.0809891</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">22</td>
+<td style="text-align: left;">hsa-miR-345-5p</td>
+<td style="text-align: left;">ENSG00000258504.1</td>
+<td style="text-align: right;">0.694279</td>
+<td style="text-align: right;">0.0912041</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="causal-test-combinations" class="level3">
+<h3 class="anchored" data-anchor-id="causal-test-combinations">Causal test combinations</h3>
+<p>As indicated above, causal inference requires the combination of multiple statistical tests, and <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> supports <a href="https://tmichoel.github.io/Findr.jl/dev/testLLR/#Causal-inference">multiple such combinations</a>, each with their own strengths and weaknesses. Comparisons between the different methods can be found in the <a href="https://doi.org/10.1371/journal.pcbi.1005703">original Findr paper</a> and in a <a href="https://doi.org/10.1039/D0MO00140F">follow-up paper</a>. In brief, the following combinations are available:</p>
+<section id="instrumental-variables-default" class="level4">
+<h4 class="anchored" data-anchor-id="instrumental-variables-default">Instrumental variables (default)</h4>
+<p>The <em>instrumental variables</em> (IV) test combination infers a causal <span class="math inline">\(A\to B\)</span> interaction if there is a genetic association <span class="math inline">\(E\to B\)</span>, where <span class="math inline">\(E\)</span> is the causal anchor (best cis-eQTL for <span class="math inline">\(A\)</span>), and if <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are not independently associated with <span class="math inline">\(E\)</span> (no pleiotropic effect). This test combination has been shown to provide a good balance between false negative and false positive rate and has a clear genetic interpretation. It is therefore recommended as the default combination. To use the instrumental variable test combination, you don’t need to do anything (it’s the default):</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>or, you can explicitly set the optional parameter <code>combination="IV"</code>:</p>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>, combination<span class="op">=</span><span class="st">"IV"</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="mediation" class="level4">
+<h4 class="anchored" data-anchor-id="mediation">Mediation</h4>
+<p>The <em>mediation test</em> infers a causal <span class="math inline">\(A\to B\)</span> interaction if there is a genetic association <span class="math inline">\(E\to B\)</span> and if this association disappears after conditioning on <span class="math inline">\(A\)</span>. If these two tests are true, the causal graph must be <span class="math inline">\(E\to A\to B\)</span>. As a result, this test combination has a very low false positive rate, but in most applications it is hampered by a high false negative rate: if <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are jointly regulated by a third factor <span class="math inline">\(C\)</span>, the mediation test will fail even in the presence of a true <span class="math inline">\(A\to B\)</span> interaction. To use the mediation test combination, set the optional parameter <code>combination="mediation"</code>:</p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>dP_med <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>, combination<span class="op">=</span><span class="st">"mediation"</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="original-findr-combination" class="level4">
+<h4 class="anchored" data-anchor-id="original-findr-combination">Original Findr combination</h4>
+<p>In the <a href="https://doi.org/10.1371/journal.pcbi.1005703">original Findr paper</a>, a new test combination was proposed that combines the instrumental variable test combination with a new <a href="https://tmichoel.github.io/Findr.jl/dev/realLLR/#Relevance-test">relevance test</a>. On simulated data, this new combination further reduced the false negative rate compared to the IV combination. at the expense of an increased false positive rate, for an overall improved performance. However, the relevance test does not have a clear genetic or causal interpretation, and on real data, performance is generally equivalent to the IV combination, and therefore the IV combination is now recommended as the default. To use the original Findr test combination, set the optional parameter <code>combination="orig"</code>:</p>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>dP_orig <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>, combination<span class="op">=</span><span class="st">"orig"</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
