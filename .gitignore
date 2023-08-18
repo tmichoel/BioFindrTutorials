@@ -6,7 +6,7 @@
 
 .quarto/
 _site/
-_freeze/
+#_freeze/
 .jupyter_cache/
 .ipynb_checkpoints/
 
