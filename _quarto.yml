@@ -5,8 +5,7 @@ project:
 website:
   title: "Findr Tutorials"
   navbar:
-    left:
-      - about.qmd
+    search: true
   sidebar:
     style: "docked"
     search: true
