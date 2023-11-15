@@ -9,7 +9,7 @@ _site/
 #_freeze/
 .jupyter_cache/
 .ipynb_checkpoints/
-
+.vscode/
 /.quarto/
 
 
@@ -431,3 +431,5 @@ $RECYCLE.BIN/
 # Many thanks to `https://gitignore.io/`, written and maintained by Joe Blau, which contributed much material to this gitignore file.
 
 /.quarto/
+.vscode/settings.json
+_freeze/coexpression/execute-results/html.json

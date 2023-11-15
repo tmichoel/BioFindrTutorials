@@ -1,0 +1,104 @@
+---
+title: "Internal functions 2"
+format:
+  html:
+    code-fold: false
+jupyter: julia-1.9
+execute: 
+  cache: true
+  keep-ipynb: true
+---
+## Introduction
+
+The only function [exported](https://docs.julialang.org/en/v1/manual/modules/#Export-lists) by [Findr.jl][1] is the [`findr`](https://tmichoel.github.io/Findr.jl/dev/testLLR/) function itself. Nevertheless, many of the internal functions may be useful when digging deeper in the results for specific genes. The [package documentation][6] contains detailed descriptions of all package functions, intertwined with the methods section of the [original paper][5], and should give a good overview of what is available. 
+
+In this tutorial we consider the situation where you have a single gene of interest and want to compute genetic association statistics for a set of variants of interest (for instance when doing a GWAS analysis for that gene). The approach from the [association analysis tutorial](association.qmd) cannot be followed in this case, because the exported [`findr`](https://tmichoel.github.io/Findr.jl/dev/testLLR/) function assumes that many target genes ("B" genes) are tested against one or more variants and uses the distribution of likelihood ratios across all target genes for [Bayesian inference of posterior probabilities](https://lab.michoel.info/Findr.jl/dev/posteriorprobs/). If only one or a small number of genes are tested, this is no longer possible. Nevertheless it is still possible to compute p-values under the null hypothesis of the [linkage test](https://lab.michoel.info/Findr.jl/dev/realLLR/) in this situation.
+
+## Set up the environment
+
+```{julia}
+using DrWatson
+quickactivate(@__DIR__)
+
+using DataFrames
+using Arrow
+using StatsPlots
+using LaTeXStrings
+using Distributions
+
+using Findr
+```
+
+## Load data
+
+You should by now be familiar with the GEUVADIS data used in the *First steps* tutorials. Here we need the following files:
+
+```{julia}
+dt = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dt.arrow")));
+dg = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dgt.arrow")));
+```
+
+Set the gene of interest:
+
+```{julia}
+gene = names(dt)[10]
+```
+
+## Run the analysis
+
+### Convert the data
+
+Internally, all [Findr.jl][1] functions use matrix-based inputs and [supernormalized data](https://tmichoel.github.io/Findr.jl/dev/inference/). The easiest way to convert our data is to run `supernormalize` on the initial data:
+
+```{julia}
+Yg = vec(Findr.supernormalize(select(dt,gene)));
+```
+
+For the genotype data, no conversion is needed:
+
+```{julia}
+G = Matrix(dg);
+```
+
+We will also need the number of samples:
+
+```{julia}
+ns = length(Yg);
+```
+
+### Compute null p-values
+
+Throughout the package, the [likelihood ratio tests](https://tmichoel.github.io/Findr.jl/dev/realLLR/) are labelled by the following [symbols](https://docs.julialang.org/en/v1/manual/metaprogramming/#Symbols)
+
+- Test 2 (**Linkage test**): `:link`
+- Test 3 (**Mediation test**): `:med`
+- Test 4 (**Relevance test**): `:relev`
+- Test 5 (**Pleiotropy test**): `:pleio`
+
+For genetic association testing, we only need the **linkage** test.
+
+Since [all log-likelihood ratios are computed from the same summary statistics](https://tmichoel.github.io/Findr.jl/dev/realLLR/#Implementation), a single function computes them all. To compute the log-likelihood ratios for a specific A-gene (here: hsa-miR-200b-3p with column vector of expression data `Ym`) with a causal instrument (best eQTL) with genotype vector `E`, run:
+
+```{julia}
+llr2 = zeros(size(G,2))
+pval = zeros(size(G,2))
+for i in axes(G,2)
+  ng = length(unique(G[:,i]))
+  llr2[i] = Findr.realLLR_col(Yg, G[:,i])[1]
+  pval[i] = Findr.nullpval(llr2[i] , ns, ng, :link);
+end
+```
+
+Put the results in a DataFrame together with the SNP IDs, and sort by ascending p-value:
+
+```{julia}
+dp = DataFrame(:SNP => names(dg), :pvalue => pval)
+sort!(dp, :pvalue)
+```
+
+[1]: https://github.com/tmichoel/Findr.jl
+[2]: https://github.com/lingfeiwang/findr-data-geuvadis
+[3]: https://doi.org/10.1038/nature12531
+[4]: https://dataframes.juliadata.org/stable/
+[5]: https://doi.org/10.1371/journal.pcbi.1005703
+[6]: https://tmichoel.github.io/Findr.jl/dev/

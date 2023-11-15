@@ -24,7 +24,7 @@ website:
           - causal-inference.qmd
       - section: "Advanced topics"
         contents: 
-          - functions.qmd
+          - internal-functions-1.qmd
           - matrix-data.qmd
           - parallelization.qmd
 

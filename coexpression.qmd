@@ -1,8 +1,8 @@
 ---
 title: "Coexpression analysis"
 format:
-  html:
-    code-fold: false
+  html: default
+  ipynb: default
 jupyter: julia-1.9
 execute: 
   cache: true
