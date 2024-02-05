@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>BioFindr Tutorials - Association analysis</title>
+<title>BioFindr Tutorials - Internal functions 2</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -97,8 +97,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -124,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./coexpression.html">First steps</a></li><li class="breadcrumb-item"><a href="./association.html">Association analysis</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Internal functions 2</li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -173,7 +171,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./association.html" class="sidebar-item-text sidebar-link active">
+  <a href="./association.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Association analysis</span></a>
   </div>
 </li>
@@ -226,12 +224,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
   <li><a href="#set-up-the-environment" id="toc-set-up-the-environment" class="nav-link" data-scroll-target="#set-up-the-environment">Set up the environment</a></li>
-  <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data">Load data</a>
+  <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data">Load data</a></li>
+  <li><a href="#run-the-analysis" id="toc-run-the-analysis" class="nav-link" data-scroll-target="#run-the-analysis">Run the analysis</a>
   <ul class="collapse">
-  <li><a href="#expression-data" id="toc-expression-data" class="nav-link" data-scroll-target="#expression-data">Expression data</a></li>
-  <li><a href="#genotype-data" id="toc-genotype-data" class="nav-link" data-scroll-target="#genotype-data">Genotype data</a></li>
+  <li><a href="#convert-the-data" id="toc-convert-the-data" class="nav-link" data-scroll-target="#convert-the-data">Convert the data</a></li>
+  <li><a href="#compute-null-p-values" id="toc-compute-null-p-values" class="nav-link" data-scroll-target="#compute-null-p-values">Compute null p-values</a></li>
   </ul></li>
-  <li><a href="#run-biofindr.jl" id="toc-run-biofindr.jl" class="nav-link" data-scroll-target="#run-biofindr.jl">Run BioFindr.jl</a></li>
   </ul>
 </nav>
     </div>
@@ -240,7 +238,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Association analysis</h1>
+<h1 class="title">Internal functions 2</h1>
 </div>
 
 
@@ -257,262 +255,234 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>While <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> is developed primarily for causal inference from genomics and transcriptomics data, association analysis between genomics and transcriptomics data is also possible. In association analysis, genetic effects on the transcriptome are measured by testing if genes are differentially expressed in different groups of samples defined by the genotype of a genetic variant of interest. In <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a>, significance of association is computed using a <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR">categorical model</a> and a variant-specific background distribution. Similar to what was done in the <a href="./coexpression.html">coexpression analysis tutorial</a>, this is achieved by modelling the distribution of association values between a given variant <span class="math inline">\(A\)</span> and all genes <span class="math inline">\(B\)</span> as a <a href="https://en.wikipedia.org/wiki/Mixture_distribution">mixture distribution</a> of real and null (random) associations. The relative weight of each component then reflects the prior probability of finding a non-null <span class="math inline">\(B\)</span> gene for a given variant <span class="math inline">\(A\)</span>, and is fitted for every <span class="math inline">\(A\)</span> separately.</p>
-<p>We will illustrate how to run association analysis with <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> using <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed data</a> from the <a href="https://doi.org/10.1038/nature12531">GEUVADIS study</a>. See the <a href="./installation.html">installation instructions</a> for the steps you need to take to reproduce this tutorial.</p>
+<p>The only function <a href="https://docs.julialang.org/en/v1/manual/modules/#Export-lists">exported</a> by <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> is the <a href="https://tmichoel.github.io/BioFindr.jl/dev/testLLR/"><code>findr</code></a> function itself. Nevertheless, many of the internal functions may be useful when digging deeper in the results for specific genes. The <a href="https://tmichoel.github.io/BioFindr.jl/dev/">package documentation</a> contains detailed descriptions of all package functions, intertwined with the methods section of the <a href="https://doi.org/10.1371/journal.pcbi.1005703">original paper</a>, and should give a good overview of what is available.</p>
+<p>In this tutorial we consider the situation where you have a single gene of interest and want to compute genetic association statistics for a set of variants of interest (for instance when doing a GWAS analysis for that gene). The approach from the <a href="./association.html">association analysis tutorial</a> cannot be followed in this case, because the exported <a href="https://tmichoel.github.io/BioFindr.jl/dev/testLLR/"><code>findr</code></a> function assumes that many target genes (“B” genes) are tested against one or more variants and uses the distribution of likelihood ratios across all target genes for <a href="https://lab.michoel.info/BioFindr.jl/dev/posteriorprobs/">Bayesian inference of posterior probabilities</a>. If only one or a small number of genes are tested, this is no longer possible. Nevertheless it is still possible to compute p-values under the null hypothesis of the <a href="https://lab.michoel.info/BioFindr.jl/dev/realLLR/">linkage test</a> in this situation.</p>
 </section>
 <section id="set-up-the-environment" class="level2">
 <h2 class="anchored" data-anchor-id="set-up-the-environment">Set up the environment</h2>
-<p>We begin by setting up the environment and loading some necessary packages.</p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quickactivate</span>(<span class="pp">@__DIR__</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DataFrames</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Arrow</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BioFindr</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>[ Info: Precompiling BioFindr [77580646-997d-4218-a3cc-42097ecd1c68]</code></pre>
-</div>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">StatsPlots</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LaTeXStrings</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Distributions</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BioFindr</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="load-data" class="level2">
 <h2 class="anchored" data-anchor-id="load-data">Load data</h2>
-<section id="expression-data" class="level3">
-<h3 class="anchored" data-anchor-id="expression-data">Expression data</h3>
-<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> expects that expression data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">floating-point numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genes) and rows to samples, see the <a href="./coexpression.html">coexpression analysis tutorial</a> for more details.</p>
-<p>This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called <code>dt</code>, and one for microRNA (miRNA) expression data called <code>dm</code>:</p>
+<p>You should by now be familiar with the GEUVADIS data used in the <em>First steps</em> tutorials. Here we need the following files:</p>
 <div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dt.arrow"</span>)));</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>dm <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dm.arrow"</span>)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dt.arrow"</span>)));</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>dg <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgt.arrow"</span>)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section>
-<section id="genotype-data" class="level3">
-<h3 class="anchored" data-anchor-id="genotype-data">Genotype data</h3>
-<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> expects that genotype data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">integer numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genetic variants) and rows to samples. Since <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> uses a <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR">categorical association model</a>, it does not matter how different genotypes (e.g.&nbsp;heterozygous vs.&nbsp;homozygous) are encoded as integers. Future versions will support <a href="https://juliaai.github.io/ScientificTypes.jl/dev/">scientific types</a> for representing genotype data.</p>
-<p>This tutorial uses two tables of genotype data from the same set of samples as the expression data, one with genotypes for mRNA eQTLs called <code>dgt</code>, and one for microRNA (miRNA) eQTLs called <code>dgm</code>:</p>
+<p>Set the gene of interest:</p>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>dgt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgt.arrow"</span>)));</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>dgm <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgm.arrow"</span>)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>gene <span class="op">=</span> <span class="fu">names</span>(dt)[<span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>"ENSG00000125124.6"</code></pre>
+</div>
 </div>
 </section>
-</section>
-<section id="run-biofindr.jl" class="level2">
-<h2 class="anchored" data-anchor-id="run-biofindr.jl">Run BioFindr.jl</h2>
-<p>Assume we are interested in identifying mRNA genes whose expression levels are associated to microRNA eQTLs. We run:</p>
+<section id="run-the-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="run-the-analysis">Run the analysis</h2>
+<section id="convert-the-data" class="level3">
+<h3 class="anchored" data-anchor-id="convert-the-data">Convert the data</h3>
+<p>Internally, all <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> functions use matrix-based inputs and <a href="https://tmichoel.github.io/BioFindr.jl/dev/inference/">supernormalized data</a>. The easiest way to convert our data is to run <code>supernormalize</code> on the initial data:</p>
 <div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dt, dgm, FDR<span class="op">=</span><span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
-<div><div style="float: left;"><span>245×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">220 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Yg <span class="op">=</span> <span class="fu">vec</span>(BioFindr.<span class="fu">supernormalize</span>(<span class="fu">select</span>(dt,gene)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>For the genotype data, no conversion is needed:</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>G <span class="op">=</span> <span class="fu">Matrix</span>(dg);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will also need the number of samples:</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ns <span class="op">=</span> <span class="fu">length</span>(Yg);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="compute-null-p-values" class="level3">
+<h3 class="anchored" data-anchor-id="compute-null-p-values">Compute null p-values</h3>
+<p>Throughout the package, the <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/">likelihood ratio tests</a> are labelled by the following <a href="https://docs.julialang.org/en/v1/manual/metaprogramming/#Symbols">symbols</a></p>
+<ul>
+<li>Test 2 (<strong>Linkage test</strong>): <code>:link</code></li>
+<li>Test 3 (<strong>Mediation test</strong>): <code>:med</code></li>
+<li>Test 4 (<strong>Relevance test</strong>): <code>:relev</code></li>
+<li>Test 5 (<strong>Pleiotropy test</strong>): <code>:pleio</code></li>
+</ul>
+<p>For genetic association testing, we only need the <strong>linkage</strong> test.</p>
+<p>Since <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#Implementation">all log-likelihood ratios are computed from the same summary statistics</a>, a single function computes them all. To compute the log-likelihood ratios for a specific A-gene (here: hsa-miR-200b-3p with column vector of expression data <code>Ym</code>) with a causal instrument (best eQTL) with genotype vector <code>E</code>, run:</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>llr2 <span class="op">=</span> <span class="fu">zeros</span>(<span class="fu">size</span>(G,<span class="fl">2</span>))</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>pval <span class="op">=</span> <span class="fu">zeros</span>(<span class="fu">size</span>(G,<span class="fl">2</span>))</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="fu">axes</span>(G,<span class="fl">2</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  ng <span class="op">=</span> <span class="fu">length</span>(<span class="fu">unique</span>(G[<span class="op">:</span>,i]))</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  llr2[i] <span class="op">=</span> BioFindr.<span class="fu">realLLR_col</span>(Yg, G[<span class="op">:</span>,i])[<span class="fl">1</span>]</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  pval[i] <span class="op">=</span> BioFindr.<span class="fu">nullpval</span>(llr2[i] , ns, ng, <span class="op">:</span>link);</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Put the results in a DataFrame together with the SNP IDs, and sort by ascending p-value:</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dp <span class="op">=</span> <span class="fu">DataFrame</span>(<span class="op">:</span>SNP <span class="op">=&gt;</span> <span class="fu">names</span>(dg), <span class="op">:</span>pvalue <span class="op">=&gt;</span> pval)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sort!</span>(dp, <span class="op">:</span>pvalue)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div><div style="float: left;"><span>3172×2 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">3147 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame table table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
 <tr class="header header">
 <th class="rowNumber" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Source</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Target</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Probability</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">qvalue</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SNP</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">pvalue</th>
 </tr>
 <tr class="odd subheader headerLastRow">
 <th class="rowNumber" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
 <th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
 <th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">1</td>
-<td style="text-align: left;">rs71532525</td>
-<td style="text-align: left;">ENSG00000229358.2</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">rs9940094</td>
+<td style="text-align: right;">6.2972e-24</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">2</td>
-<td style="text-align: left;">rs6987762</td>
-<td style="text-align: left;">ENSG00000245080.3</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">rs11283195</td>
+<td style="text-align: right;">0.000471103</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">3</td>
-<td style="text-align: left;">rs3807344</td>
-<td style="text-align: left;">ENSG00000128510.5</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">rs879497</td>
+<td style="text-align: right;">0.000744385</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">4</td>
-<td style="text-align: left;">rs6462386</td>
-<td style="text-align: left;">ENSG00000229358.2</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">rs4292287</td>
+<td style="text-align: right;">0.000918026</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">5</td>
-<td style="text-align: left;">rs3807344_1</td>
-<td style="text-align: left;">ENSG00000128510.5</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">rs4085083</td>
+<td style="text-align: right;">0.00150058</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">6</td>
-<td style="text-align: left;">rs9616333</td>
-<td style="text-align: left;">ENSG00000212939.2</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">4.48436e-11</td>
+<td style="text-align: left;">rs229484</td>
+<td style="text-align: right;">0.00169764</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">7</td>
-<td style="text-align: left;">rs8141807</td>
-<td style="text-align: left;">ENSG00000212939.2</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">2.89877e-10</td>
+<td style="text-align: left;">rs2905214</td>
+<td style="text-align: right;">0.00197272</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">8</td>
-<td style="text-align: left;">rs5743580</td>
-<td style="text-align: left;">ENSG00000174130.7</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">3.65605e-9</td>
+<td style="text-align: left;">rs3794140</td>
+<td style="text-align: right;">0.00199086</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">9</td>
-<td style="text-align: left;">rs73236618</td>
-<td style="text-align: left;">ENSG00000174130.7</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">1.30597e-8</td>
+<td style="text-align: left;">rs112070238</td>
+<td style="text-align: right;">0.00209161</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">10</td>
-<td style="text-align: left;">rs5743580</td>
-<td style="text-align: left;">ENSG00000174125.3</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">2.22497e-8</td>
+<td style="text-align: left;">rs3828570</td>
+<td style="text-align: right;">0.00226225</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">11</td>
-<td style="text-align: left;">rs73236618</td>
-<td style="text-align: left;">ENSG00000174125.3</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">4.03598e-8</td>
+<td style="text-align: left;">rs34721481</td>
+<td style="text-align: right;">0.00231592</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">12</td>
-<td style="text-align: left;">rs6462386</td>
-<td style="text-align: left;">ENSG00000237004.2</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">5.69644e-8</td>
+<td style="text-align: left;">rs199607077</td>
+<td style="text-align: right;">0.0025415</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">13</td>
-<td style="text-align: left;">rs71532525</td>
-<td style="text-align: left;">ENSG00000237004.2</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">8.03159e-8</td>
+<td style="text-align: left;">rs1534973</td>
+<td style="text-align: right;">0.00295218</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">⋮</td>
 <td style="text-align: right;">⋮</td>
 <td style="text-align: right;">⋮</td>
-<td style="text-align: right;">⋮</td>
-<td style="text-align: right;">⋮</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">234</td>
-<td style="text-align: left;">rs768533</td>
-<td style="text-align: left;">ENSG00000177239.9</td>
-<td style="text-align: right;">0.904976</td>
-<td style="text-align: right;">0.0477775</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3161</td>
+<td style="text-align: left;">rs16981522</td>
+<td style="text-align: right;">0.995147</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">235</td>
-<td style="text-align: left;">rs768533_1</td>
-<td style="text-align: left;">ENSG00000177239.9</td>
-<td style="text-align: right;">0.904976</td>
-<td style="text-align: right;">0.0479786</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3162</td>
+<td style="text-align: left;">rs10807157</td>
+<td style="text-align: right;">0.996345</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">236</td>
-<td style="text-align: left;">rs768533</td>
-<td style="text-align: left;">ENSG00000237172.3</td>
-<td style="text-align: right;">0.904966</td>
-<td style="text-align: right;">0.048178</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3163</td>
+<td style="text-align: left;">rs6687474</td>
+<td style="text-align: right;">0.996606</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">237</td>
-<td style="text-align: left;">rs768533_1</td>
-<td style="text-align: left;">ENSG00000237172.3</td>
-<td style="text-align: right;">0.904966</td>
-<td style="text-align: right;">0.0483757</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3164</td>
+<td style="text-align: left;">rs11666334</td>
+<td style="text-align: right;">0.99727</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">238</td>
-<td style="text-align: left;">indel:3I_20_62542026</td>
-<td style="text-align: left;">ENSG00000182718.11</td>
-<td style="text-align: right;">0.903654</td>
-<td style="text-align: right;">0.0485772</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3165</td>
+<td style="text-align: left;">rs3735701</td>
+<td style="text-align: right;">0.997707</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">239</td>
-<td style="text-align: left;">rs4926170</td>
-<td style="text-align: left;">ENSG00000241129.2</td>
-<td style="text-align: right;">0.90332</td>
-<td style="text-align: right;">0.0487785</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3166</td>
+<td style="text-align: left;">rs3735701_1</td>
+<td style="text-align: right;">0.997707</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">240</td>
-<td style="text-align: left;">rs80283015</td>
-<td style="text-align: left;">ENSG00000145349.12</td>
-<td style="text-align: right;">0.903025</td>
-<td style="text-align: right;">0.0489793</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3167</td>
+<td style="text-align: left;">rs2184161</td>
+<td style="text-align: right;">0.997788</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">241</td>
-<td style="text-align: left;">rs768533</td>
-<td style="text-align: left;">ENSG00000228976.1</td>
-<td style="text-align: right;">0.902361</td>
-<td style="text-align: right;">0.0491812</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3168</td>
+<td style="text-align: left;">rs68050381</td>
+<td style="text-align: right;">0.997995</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">242</td>
-<td style="text-align: left;">rs768533_1</td>
-<td style="text-align: left;">ENSG00000228976.1</td>
-<td style="text-align: right;">0.902361</td>
-<td style="text-align: right;">0.0493815</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3169</td>
+<td style="text-align: left;">rs61876250</td>
+<td style="text-align: right;">0.998395</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">243</td>
-<td style="text-align: left;">rs80283015</td>
-<td style="text-align: left;">ENSG00000088992.13</td>
-<td style="text-align: right;">0.902234</td>
-<td style="text-align: right;">0.0495806</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3170</td>
+<td style="text-align: left;">rs75206071</td>
+<td style="text-align: right;">0.998975</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">244</td>
-<td style="text-align: left;">rs30221</td>
-<td style="text-align: left;">ENSG00000249719.1</td>
-<td style="text-align: right;">0.902213</td>
-<td style="text-align: right;">0.0497781</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3171</td>
+<td style="text-align: left;">rs3747816</td>
+<td style="text-align: right;">0.999285</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">245</td>
-<td style="text-align: left;">rs80283015</td>
-<td style="text-align: left;">ENSG00000231249.1</td>
-<td style="text-align: right;">0.901757</td>
-<td style="text-align: right;">0.049976</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3172</td>
+<td style="text-align: left;">rs4807542</td>
+<td style="text-align: right;">0.999328</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 </div>
-<p>BioFindr computes a <a href="https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/">posterior probability</a> of non-zero association for every <strong>Source</strong> variant (columns of <code>dgm</code>) and <strong>Target</strong> gene (columns of <code>dt</code>). By default the output is sorted by decreasing <strong>Probability</strong>. The optional parameter <strong>FDR</strong> can be used to limit the output to the set of pairs that has a <a href="https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure">global false discovery rate (FDR)</a> less than a desired value (here set to 5%). The <strong>qvalue</strong> column in the output can be used for further filtering of the output, see the <a href="./coexpression.html">coexpression analysis tutorial</a> for further details.</p>
-<p>Note the order of the arguments. The first argument <code>dt</code> is the <strong>Target</strong> DataFrame, and the second argument the <strong>Source</strong> DataFrame.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.361">
+<meta name="generator" content="quarto-1.3.450">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Findr Tutorials - Coexpression analysis</title>
+<title>BioFindr Tutorials - Coexpression analysis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -111,7 +111,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">Findr Tutorials</span>
+    <span class="navbar-title">BioFindr Tutorials</span>
     </a>
   </div>
         <div class="quarto-navbar-tools ms-auto">
@@ -196,7 +196,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./functions.html" class="sidebar-item-text sidebar-link">
+  <a href="./internal-functions-1.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Internal functions</span></a>
   </div>
 </li>
@@ -227,13 +227,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
   <li><a href="#set-up-the-environment" id="toc-set-up-the-environment" class="nav-link" data-scroll-target="#set-up-the-environment">Set up the environment</a></li>
   <li><a href="#load-expression-data" id="toc-load-expression-data" class="nav-link" data-scroll-target="#load-expression-data">Load expression data</a></li>
-  <li><a href="#run-findr.jl" id="toc-run-findr.jl" class="nav-link" data-scroll-target="#run-findr.jl">Run Findr.jl</a>
+  <li><a href="#run-biofindr.jl" id="toc-run-biofindr.jl" class="nav-link" data-scroll-target="#run-biofindr.jl">Run BioFindr.jl</a>
   <ul class="collapse">
   <li><a href="#all-vs-all-coexpression-analysis" id="toc-all-vs-all-coexpression-analysis" class="nav-link" data-scroll-target="#all-vs-all-coexpression-analysis">All-vs-all coexpression analysis</a></li>
   <li><a href="#bipartite-coexpression-analysis" id="toc-bipartite-coexpression-analysis" class="nav-link" data-scroll-target="#bipartite-coexpression-analysis">Bipartite coexpression analysis</a></li>
   </ul></li>
   </ul>
-</nav>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="coexpression.ipynb" download="coexpression.ipynb"><i class="bi bi-journal-code"></i>Jupyter</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -257,8 +257,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>While <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> is developed primarily for causal inference from genomics and transcriptomics data, coexpression analysis of transcriptomics data alone is also possible. In coexpression analysis, pairwise correlation is used as a simple measure for the probability of two genes being functionally related either through direct or indirect regulation, or through coregulation by a third factor. In <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a>, significance of pairwise correlation is computed using a gene-specific background distribution, allowing for genes having different biological roles. For instance, it is known that many biological networks are <a href="https://en.wikipedia.org/wiki/Scale-free_network">scale-free</a>, where a small number of so-called “hub genes” have a high number of interaction partners while most other genes only have few. In <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a>, this is accomodated by modelling the distribution of correlation values between a given gene <span class="math inline">\(A\)</span> and all other genes <span class="math inline">\(B\)</span> as a <a href="https://en.wikipedia.org/wiki/Mixture_distribution">mixture distribution</a> of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null <span class="math inline">\(B\)</span> gene for a given <span class="math inline">\(A\)</span> gene, and is fitted for every <span class="math inline">\(A\)</span> gene separately.</p>
-<p>We will illustrate how to run coexpression analysis with <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> using <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed data</a> from the <a href="https://doi.org/10.1038/nature12531">GEUVADIS study</a>. See the <a href="./installation.html">installation instructions</a> for the steps you need to take to reproduce this tutorial.</p>
+<p>While <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> is developed primarily for causal inference from genomics and transcriptomics data, coexpression analysis of transcriptomics data alone is also possible. In coexpression analysis, pairwise correlation is used as a simple measure for the probability of two genes being functionally related either through direct or indirect regulation, or through coregulation by a third factor. In <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a>, significance of pairwise correlation is computed using a gene-specific background distribution, allowing for genes having different biological roles. For instance, it is known that many biological networks are <a href="https://en.wikipedia.org/wiki/Scale-free_network">scale-free</a>, where a small number of so-called “hub genes” have a high number of interaction partners while most other genes only have few. In <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a>, this is accomodated by modelling the distribution of correlation values between a given gene <span class="math inline">\(A\)</span> and all other genes <span class="math inline">\(B\)</span> as a <a href="https://en.wikipedia.org/wiki/Mixture_distribution">mixture distribution</a> of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null <span class="math inline">\(B\)</span> gene for a given <span class="math inline">\(A\)</span> gene, and is fitted for every <span class="math inline">\(A\)</span> gene separately.</p>
+<p>We will illustrate how to run coexpression analysis with <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> using <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed data</a> from the <a href="https://doi.org/10.1038/nature12531">GEUVADIS study</a>. See the <a href="./installation.html">installation instructions</a> for the steps you need to take to reproduce this tutorial.</p>
 </section>
 <section id="set-up-the-environment" class="level2">
 <h2 class="anchored" data-anchor-id="set-up-the-environment">Set up the environment</h2>
@@ -271,13 +271,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Arrow</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Markdown</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Findr</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BioFindr</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="load-expression-data" class="level2">
 <h2 class="anchored" data-anchor-id="load-expression-data">Load expression data</h2>
-<p><a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> expects that expression data are stored in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genes) and rows to samples. An expression <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> should not contain any other columns (e.g.&nbsp;gene annotation) than gene expression columns, and gene expression data should be stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">floating-point numbers</a>. Internally, <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> operates on matrices, and if you have an expression <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> <code>df</code>, then <code>Matrix(df)</code> should return a matrix of floats.</p>
-<p>At the moment, <a href="https://github.com/tmichoel/Findr.jl">Findr.jl</a> does not support count-based expression data being provided as a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> of integers. This is not an intrinsic limitation of the method, but simply to distinguish expression data from integer-valued genotype data. Future versions will remove this limitation by supporting <a href="https://juliaai.github.io/ScientificTypes.jl/dev/">scientific types</a>.</p>
+<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> expects that expression data are stored in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genes) and rows to samples. An expression <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> should not contain any other columns (e.g.&nbsp;gene annotation) than gene expression columns, and gene expression data should be stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">floating-point numbers</a>. Internally, <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> operates on matrices, and if you have an expression <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> <code>df</code>, then <code>Matrix(df)</code> should return a matrix of floats.</p>
+<p>At the moment, <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> does not support count-based expression data being provided as a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> of integers. This is not an intrinsic limitation of the method, but simply to distinguish expression data from integer-valued genotype data. Future versions will remove this limitation by supporting <a href="https://juliaai.github.io/ScientificTypes.jl/dev/">scientific types</a>.</p>
 <p>This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called <code>dt</code>, and one for microRNA (miRNA) expression data called <code>dm</code>:</p>
 <div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dt.arrow"</span>)));</span>
@@ -297,15 +297,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
-<section id="run-findr.jl" class="level2">
-<h2 class="anchored" data-anchor-id="run-findr.jl">Run Findr.jl</h2>
+<section id="run-biofindr.jl" class="level2">
+<h2 class="anchored" data-anchor-id="run-biofindr.jl">Run BioFindr.jl</h2>
 <section id="all-vs-all-coexpression-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="all-vs-all-coexpression-analysis">All-vs-all coexpression analysis</h3>
 <p>The simplest type of coexpression analysis tests for non-zero correlation among all possible pairs in a gene expression dataset. Let’s do this for the miRNA data:</p>
 <div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dP_mir_all <span class="op">=</span> <span class="fu">findr</span>(dm, FDR<span class="op">=</span><span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<div><div style="float: left;"><span>28323×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">28298 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<div><div style="float: left;"><span>28378×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">28353 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame table table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
 <tr class="header header">
@@ -423,99 +423,99 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: right;">⋮</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28312</td>
-<td style="text-align: left;">hsa-miR-454-3p</td>
-<td style="text-align: left;">hsa-miR-3688-1-3p</td>
-<td style="text-align: right;">0.849358</td>
-<td style="text-align: right;">0.0499582</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28367</td>
+<td style="text-align: left;">hsa-miR-410-3p</td>
+<td style="text-align: left;">hsa-miR-7-3-5p</td>
+<td style="text-align: right;">0.84803</td>
+<td style="text-align: right;">0.0499585</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28313</td>
-<td style="text-align: left;">hsa-miR-3960-3p</td>
-<td style="text-align: left;">hsa-miR-551b-3p</td>
-<td style="text-align: right;">0.849358</td>
-<td style="text-align: right;">0.0499618</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28368</td>
+<td style="text-align: left;">hsa-miR-152-3p</td>
+<td style="text-align: left;">hsa-miR-181a-1-5p</td>
+<td style="text-align: right;">0.848014</td>
+<td style="text-align: right;">0.0499621</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28314</td>
-<td style="text-align: left;">hsa-miR-16-1-5p</td>
-<td style="text-align: left;">hsa-miR-4437-3p</td>
-<td style="text-align: right;">0.849352</td>
-<td style="text-align: right;">0.0499654</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28369</td>
+<td style="text-align: left;">hsa-let-7f-2-3p</td>
+<td style="text-align: left;">hsa-miR-4446-3p</td>
+<td style="text-align: right;">0.848008</td>
+<td style="text-align: right;">0.0499657</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28315</td>
-<td style="text-align: left;">hsa-miR-1180-3p</td>
-<td style="text-align: left;">hsa-miR-3181-5p</td>
-<td style="text-align: right;">0.849348</td>
-<td style="text-align: right;">0.0499689</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28370</td>
+<td style="text-align: left;">hsa-miR-181a-1-3p</td>
+<td style="text-align: left;">hsa-miR-99b-5p</td>
+<td style="text-align: right;">0.847993</td>
+<td style="text-align: right;">0.0499693</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28316</td>
-<td style="text-align: left;">hsa-miR-92a-2-3p</td>
-<td style="text-align: left;">hsa-miR-548o-2-3p</td>
-<td style="text-align: right;">0.849322</td>
-<td style="text-align: right;">0.0499725</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28371</td>
+<td style="text-align: left;">hsa-miR-330-5p</td>
+<td style="text-align: left;">hsa-miR-296-5p</td>
+<td style="text-align: right;">0.84799</td>
+<td style="text-align: right;">0.0499729</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28317</td>
-<td style="text-align: left;">hsa-miR-27b-3p</td>
-<td style="text-align: left;">hsa-miR-642a-5p</td>
-<td style="text-align: right;">0.849285</td>
-<td style="text-align: right;">0.049976</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28372</td>
+<td style="text-align: left;">hsa-miR-1307-5p</td>
+<td style="text-align: left;">hsa-miR-32-3p</td>
+<td style="text-align: right;">0.847985</td>
+<td style="text-align: right;">0.0499765</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28318</td>
-<td style="text-align: left;">hsa-miR-1303-5p</td>
-<td style="text-align: left;">hsa-miR-92a-2-3p</td>
-<td style="text-align: right;">0.849272</td>
-<td style="text-align: right;">0.0499796</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28373</td>
+<td style="text-align: left;">hsa-miR-221-3p</td>
+<td style="text-align: left;">hsa-miR-424-5p</td>
+<td style="text-align: right;">0.847972</td>
+<td style="text-align: right;">0.0499801</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28319</td>
-<td style="text-align: left;">hsa-miR-191-5p</td>
-<td style="text-align: left;">hsa-miR-320c-2-3p</td>
-<td style="text-align: right;">0.84927</td>
-<td style="text-align: right;">0.0499831</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28374</td>
+<td style="text-align: left;">hsa-miR-27b-5p</td>
+<td style="text-align: left;">hsa-miR-4424-3p</td>
+<td style="text-align: right;">0.847958</td>
+<td style="text-align: right;">0.0499837</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28320</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28375</td>
+<td style="text-align: left;">hsa-miR-629-5p</td>
+<td style="text-align: left;">hsa-miR-5096-5p</td>
+<td style="text-align: right;">0.847952</td>
+<td style="text-align: right;">0.0499873</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28376</td>
+<td style="text-align: left;">hsa-miR-181c-3p</td>
+<td style="text-align: left;">hsa-miR-374b-5p</td>
+<td style="text-align: right;">0.847946</td>
+<td style="text-align: right;">0.0499909</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28377</td>
+<td style="text-align: left;">hsa-miR-3688-2-3p</td>
+<td style="text-align: left;">hsa-miR-1260b-5p</td>
+<td style="text-align: right;">0.847943</td>
+<td style="text-align: right;">0.0499945</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">28378</td>
+<td style="text-align: left;">hsa-let-7d-5p</td>
 <td style="text-align: left;">hsa-miR-142-3p</td>
-<td style="text-align: left;">hsa-miR-365a-5p</td>
-<td style="text-align: right;">0.849264</td>
-<td style="text-align: right;">0.0499867</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28321</td>
-<td style="text-align: left;">hsa-miR-374a-3p</td>
-<td style="text-align: left;">hsa-miR-20a-5p</td>
-<td style="text-align: right;">0.849261</td>
-<td style="text-align: right;">0.0499903</td>
-</tr>
-<tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28322</td>
-<td style="text-align: left;">hsa-miR-98-3p</td>
-<td style="text-align: left;">hsa-miR-548k-5p</td>
-<td style="text-align: right;">0.849259</td>
-<td style="text-align: right;">0.0499938</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">28323</td>
-<td style="text-align: left;">hsa-miR-28-5p</td>
-<td style="text-align: left;">hsa-miR-181d-5p</td>
-<td style="text-align: right;">0.849217</td>
-<td style="text-align: right;">0.0499974</td>
+<td style="text-align: right;">0.847937</td>
+<td style="text-align: right;">0.0499981</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 </div>
-<p>Findr computes a <a href="https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/">posterior probability</a> of non-zero correlation for every <strong>Source</strong> and <strong>Target</strong> gene pair. By default the output is sorted by decreasing <strong>Probability</strong> and self-interactions are excluded. The optional parameter <strong>FDR</strong> can be used to limit the output to the set of pairs that has a <a href="https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure">global false discovery rate (FDR)</a> less than a desired value. The <strong>qvalue</strong> column in the output can be used for further filtering of the output. Say you ran findr with an FRD threshold of 5% as above. If you now want to restrict the output to an FDR threshold of 1%, you can do:</p>
+<p>BioFindr computes a <a href="https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/">posterior probability</a> of non-zero correlation for every <strong>Source</strong> and <strong>Target</strong> gene pair. By default the output is sorted by decreasing <strong>Probability</strong> and self-interactions are excluded. The optional parameter <strong>FDR</strong> can be used to limit the output to the set of pairs that has a <a href="https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure">global false discovery rate (FDR)</a> less than a desired value. The <strong>qvalue</strong> column in the output can be used for further filtering of the output. Say you ran findr with an FRD threshold of 5% as above. If you now want to restrict the output to an FDR threshold of 1%, you can do:</p>
 <div class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter!</span>(row <span class="op">-&gt;</span> row.qvalue <span class="op">&lt;=</span> <span class="fl">0.01</span>, dP_mir_all)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
-<div><div style="float: left;"><span>14479×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">14454 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<div><div style="float: left;"><span>14556×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">14531 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame table table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
 <tr class="header header">
@@ -633,88 +633,88 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: right;">⋮</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14468</td>
-<td style="text-align: left;">hsa-miR-18a-3p</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14545</td>
+<td style="text-align: left;">hsa-miR-4662a-5p</td>
+<td style="text-align: left;">hsa-miR-486-5p</td>
+<td style="text-align: right;">0.961667</td>
+<td style="text-align: right;">0.0099779</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14546</td>
+<td style="text-align: left;">hsa-miR-181b-1-3p</td>
+<td style="text-align: left;">hsa-miR-3609-3p</td>
+<td style="text-align: right;">0.961654</td>
+<td style="text-align: right;">0.00997985</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14547</td>
 <td style="text-align: left;">hsa-miR-23a-5p</td>
-<td style="text-align: right;">0.961873</td>
-<td style="text-align: right;">0.00997817</td>
+<td style="text-align: left;">hsa-miR-150-5p</td>
+<td style="text-align: right;">0.961633</td>
+<td style="text-align: right;">0.0099818</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14469</td>
-<td style="text-align: left;">hsa-miR-181a-1-3p</td>
-<td style="text-align: left;">hsa-miR-192-3p</td>
-<td style="text-align: right;">0.961868</td>
-<td style="text-align: right;">0.00998012</td>
-</tr>
-<tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14470</td>
-<td style="text-align: left;">hsa-miR-324-5p</td>
-<td style="text-align: left;">hsa-miR-362-5p</td>
-<td style="text-align: right;">0.961868</td>
-<td style="text-align: right;">0.00998207</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14471</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14548</td>
+<td style="text-align: left;">hsa-miR-500a-3p</td>
 <td style="text-align: left;">hsa-miR-138-1-3p</td>
-<td style="text-align: left;">hsa-miR-30c-1-5p</td>
-<td style="text-align: right;">0.961849</td>
-<td style="text-align: right;">0.00998401</td>
+<td style="text-align: right;">0.961624</td>
+<td style="text-align: right;">0.00998375</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14472</td>
-<td style="text-align: left;">hsa-miR-598-3p</td>
-<td style="text-align: left;">hsa-miR-22-3p</td>
-<td style="text-align: right;">0.96184</td>
-<td style="text-align: right;">0.00998596</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14549</td>
+<td style="text-align: left;">hsa-miR-425-3p</td>
+<td style="text-align: left;">hsa-miR-200c-3p</td>
+<td style="text-align: right;">0.961621</td>
+<td style="text-align: right;">0.00998571</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14473</td>
-<td style="text-align: left;">hsa-miR-148b-3p</td>
-<td style="text-align: left;">hsa-miR-3136-5p</td>
-<td style="text-align: right;">0.961824</td>
-<td style="text-align: right;">0.00998791</td>
-</tr>
-<tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14474</td>
-<td style="text-align: left;">hsa-miR-19a-5p</td>
-<td style="text-align: left;">hsa-miR-92a-1-5p</td>
-<td style="text-align: right;">0.961823</td>
-<td style="text-align: right;">0.00998985</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14475</td>
-<td style="text-align: left;">hsa-miR-142-3p</td>
-<td style="text-align: left;">hsa-miR-4645-3p</td>
-<td style="text-align: right;">0.96181</td>
-<td style="text-align: right;">0.0099918</td>
-</tr>
-<tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14476</td>
-<td style="text-align: left;">hsa-miR-197-3p</td>
-<td style="text-align: left;">hsa-let-7f-1-5p</td>
-<td style="text-align: right;">0.961799</td>
-<td style="text-align: right;">0.00999375</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14477</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14550</td>
 <td style="text-align: left;">hsa-miR-125a-5p</td>
-<td style="text-align: left;">hsa-miR-10a-5p</td>
-<td style="text-align: right;">0.961778</td>
-<td style="text-align: right;">0.0099957</td>
+<td style="text-align: left;">hsa-miR-140-3p</td>
+<td style="text-align: right;">0.961608</td>
+<td style="text-align: right;">0.00998766</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14478</td>
-<td style="text-align: left;">hsa-miR-29c-3p</td>
-<td style="text-align: left;">hsa-miR-548au-5p</td>
-<td style="text-align: right;">0.961769</td>
-<td style="text-align: right;">0.00999765</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14551</td>
+<td style="text-align: left;">hsa-miR-342-5p</td>
+<td style="text-align: left;">hsa-miR-335-5p</td>
+<td style="text-align: right;">0.961607</td>
+<td style="text-align: right;">0.00998961</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">14479</td>
-<td style="text-align: left;">hsa-miR-619-5p</td>
-<td style="text-align: left;">hsa-miR-1307-3p</td>
-<td style="text-align: right;">0.961766</td>
-<td style="text-align: right;">0.0099996</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14552</td>
+<td style="text-align: left;">hsa-miR-3615-3p</td>
+<td style="text-align: left;">hsa-miR-744-5p</td>
+<td style="text-align: right;">0.9616</td>
+<td style="text-align: right;">0.00999156</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14553</td>
+<td style="text-align: left;">hsa-miR-320d-1-3p</td>
+<td style="text-align: left;">hsa-miR-365a-5p</td>
+<td style="text-align: right;">0.961596</td>
+<td style="text-align: right;">0.00999351</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14554</td>
+<td style="text-align: left;">hsa-miR-23a-5p</td>
+<td style="text-align: left;">hsa-miR-425-5p</td>
+<td style="text-align: right;">0.961593</td>
+<td style="text-align: right;">0.00999547</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14555</td>
+<td style="text-align: left;">hsa-miR-26b-3p</td>
+<td style="text-align: left;">hsa-miR-4687-3p</td>
+<td style="text-align: right;">0.961592</td>
+<td style="text-align: right;">0.00999742</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">14556</td>
+<td style="text-align: left;">hsa-miR-589-5p</td>
+<td style="text-align: left;">hsa-miR-644b-3p</td>
+<td style="text-align: right;">0.96159</td>
+<td style="text-align: right;">0.00999937</td>
 </tr>
 </tbody>
 </table>
@@ -722,7 +722,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>Note that the <a href="https://dataframes.juliadata.org/stable/lib/functions/#Base.filter!"><code>filter!</code></a> command modifies the input DataFrame in-place, that is, the rows not matching the selection criteria are deleted. Use <a href="https://dataframes.juliadata.org/stable/lib/functions/#Base.filter"><code>filter</code></a> to return a new DataFrame with the selected rows.</p>
-<p>Finally, remember that the output of coexpression analysis in Findr is <em>not</em> symmetric, that is</p>
+<p>Finally, remember that the output of coexpression analysis in BioFindr is <em>not</em> symmetric, that is</p>
 <p><span class="math display">\[
 P(Source, Target) \neq P(Target, Source)
 \]</span></p>
@@ -730,7 +730,7 @@ P(Source, Target) \neq P(Target, Source)
 </section>
 <section id="bipartite-coexpression-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="bipartite-coexpression-analysis">Bipartite coexpression analysis</h3>
-<p>Since Findr’s posterior probabilities are Source gene-specific, we may be interested in computing probabilities only for a subset of Source genes, or using different Source and Target gene sets.</p>
+<p>Since BioFindr’s posterior probabilities are Source gene-specific, we may be interested in computing probabilities only for a subset of Source genes, or using different Source and Target gene sets.</p>
 <p>As an example of the first scenario, assume we are interested in finding microRNAs that are significantly correlated with microRNAs from the <a href="https://en.wikipedia.org/wiki/Mir-200">Mir-200 family</a>. First find the Mir-200 microRNAs:</p>
 <div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>mir200 <span class="op">=</span> <span class="fu">names</span>(dm)[<span class="fu">startswith</span>.(<span class="fu">names</span>(dm),<span class="st">"hsa-miR-200"</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -766,94 +766,94 @@ P(Source, Target) \neq P(Target, Source)
 <tbody>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">1</td>
-<td style="text-align: left;">hsa-miR-200b-3p</td>
 <td style="text-align: left;">hsa-miR-200a-3p</td>
+<td style="text-align: left;">hsa-miR-200b-3p</td>
 <td style="text-align: right;">1.0</td>
-<td style="text-align: right;">2.76053e-9</td>
+<td style="text-align: right;">1.39181e-9</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">2</td>
-<td style="text-align: left;">hsa-miR-200a-3p</td>
 <td style="text-align: left;">hsa-miR-200b-3p</td>
+<td style="text-align: left;">hsa-miR-200a-3p</td>
 <td style="text-align: right;">1.0</td>
-<td style="text-align: right;">2.80845e-9</td>
+<td style="text-align: right;">1.55254e-9</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">3</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-93-5p</td>
 <td style="text-align: right;">0.999998</td>
-<td style="text-align: right;">6.30622e-7</td>
+<td style="text-align: right;">5.68454e-7</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">4</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-140-3p</td>
-<td style="text-align: right;">0.999983</td>
-<td style="text-align: right;">4.80667e-6</td>
+<td style="text-align: right;">0.999984</td>
+<td style="text-align: right;">4.44472e-6</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">5</td>
 <td style="text-align: left;">hsa-miR-200b-3p</td>
 <td style="text-align: left;">hsa-miR-429-3p</td>
-<td style="text-align: right;">0.999907</td>
-<td style="text-align: right;">2.25115e-5</td>
+<td style="text-align: right;">0.999918</td>
+<td style="text-align: right;">1.99874e-5</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">6</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-16-1-5p</td>
-<td style="text-align: right;">0.999782</td>
-<td style="text-align: right;">5.5108e-5</td>
+<td style="text-align: right;">0.999792</td>
+<td style="text-align: right;">5.13862e-5</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">7</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-664-3p</td>
-<td style="text-align: right;">0.999774</td>
-<td style="text-align: right;">7.95436e-5</td>
+<td style="text-align: right;">0.999784</td>
+<td style="text-align: right;">7.49279e-5</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">8</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-17-5p</td>
-<td style="text-align: right;">0.999627</td>
-<td style="text-align: right;">0.000116234</td>
+<td style="text-align: right;">0.999641</td>
+<td style="text-align: right;">0.000110395</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">9</td>
-<td style="text-align: left;">hsa-miR-200c-3p</td>
-<td style="text-align: left;">hsa-miR-769-5p</td>
-<td style="text-align: right;">0.999219</td>
-<td style="text-align: right;">0.000190152</td>
+<td style="text-align: left;">hsa-miR-200b-3p</td>
+<td style="text-align: left;">hsa-miR-582-3p</td>
+<td style="text-align: right;">0.999246</td>
+<td style="text-align: right;">0.00018188</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">10</td>
-<td style="text-align: left;">hsa-miR-200b-3p</td>
-<td style="text-align: left;">hsa-miR-582-3p</td>
-<td style="text-align: right;">0.999196</td>
-<td style="text-align: right;">0.000251556</td>
+<td style="text-align: left;">hsa-miR-200c-3p</td>
+<td style="text-align: left;">hsa-miR-769-5p</td>
+<td style="text-align: right;">0.999242</td>
+<td style="text-align: right;">0.000239459</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">11</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-130b-5p</td>
-<td style="text-align: right;">0.999114</td>
-<td style="text-align: right;">0.000309265</td>
+<td style="text-align: right;">0.999139</td>
+<td style="text-align: right;">0.000295921</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">12</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-425-5p</td>
-<td style="text-align: right;">0.999025</td>
-<td style="text-align: right;">0.00036474</td>
+<td style="text-align: right;">0.999052</td>
+<td style="text-align: right;">0.000350225</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">13</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-103a-2-3p</td>
-<td style="text-align: right;">0.998972</td>
-<td style="text-align: right;">0.000415735</td>
+<td style="text-align: right;">0.999001</td>
+<td style="text-align: right;">0.000400161</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">⋮</td>
@@ -866,85 +866,85 @@ P(Source, Target) \neq P(Target, Source)
 <td class="rowNumber" style="text-align: right; font-weight: bold;">36</td>
 <td style="text-align: left;">hsa-miR-200b-3p</td>
 <td style="text-align: left;">hsa-miR-769-3p</td>
-<td style="text-align: right;">0.983903</td>
-<td style="text-align: right;">0.00641045</td>
+<td style="text-align: right;">0.983749</td>
+<td style="text-align: right;">0.00628075</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">37</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-378a-3p</td>
-<td style="text-align: right;">0.983249</td>
-<td style="text-align: right;">0.00668992</td>
+<td style="text-align: right;">0.983227</td>
+<td style="text-align: right;">0.00656431</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">38</td>
 <td style="text-align: left;">hsa-miR-200b-3p</td>
 <td style="text-align: left;">hsa-miR-26b-5p</td>
-<td style="text-align: right;">0.981344</td>
-<td style="text-align: right;">0.00700482</td>
+<td style="text-align: right;">0.981109</td>
+<td style="text-align: right;">0.00688869</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">39</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-619-5p</td>
-<td style="text-align: right;">0.980996</td>
-<td style="text-align: right;">0.00731249</td>
+<td style="text-align: right;">0.980948</td>
+<td style="text-align: right;">0.00720056</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">40</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-500a-5p</td>
-<td style="text-align: right;">0.979841</td>
-<td style="text-align: right;">0.00763364</td>
+<td style="text-align: right;">0.97978</td>
+<td style="text-align: right;">0.00752605</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">41</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-4677-3p</td>
-<td style="text-align: right;">0.979659</td>
-<td style="text-align: right;">0.00794358</td>
+<td style="text-align: right;">0.979595</td>
+<td style="text-align: right;">0.00784016</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">42</td>
 <td style="text-align: left;">hsa-miR-200b-3p</td>
 <td style="text-align: left;">hsa-miR-328-3p</td>
-<td style="text-align: right;">0.979322</td>
-<td style="text-align: right;">0.00824677</td>
+<td style="text-align: right;">0.979019</td>
+<td style="text-align: right;">0.00815303</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">43</td>
 <td style="text-align: left;">hsa-miR-200b-3p</td>
 <td style="text-align: left;">hsa-miR-9-1-5p</td>
-<td style="text-align: right;">0.979034</td>
-<td style="text-align: right;">0.00854257</td>
+<td style="text-align: right;">0.978721</td>
+<td style="text-align: right;">0.00845829</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">44</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-141-5p</td>
-<td style="text-align: right;">0.978564</td>
-<td style="text-align: right;">0.00883559</td>
+<td style="text-align: right;">0.978487</td>
+<td style="text-align: right;">0.00875499</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">45</td>
 <td style="text-align: left;">hsa-miR-200c-3p</td>
 <td style="text-align: left;">hsa-miR-30e-3p</td>
-<td style="text-align: right;">0.97794</td>
-<td style="text-align: right;">0.00912946</td>
+<td style="text-align: right;">0.977855</td>
+<td style="text-align: right;">0.00905255</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">46</td>
 <td style="text-align: left;">hsa-miR-200a-3p</td>
 <td style="text-align: left;">hsa-miR-26b-5p</td>
-<td style="text-align: right;">0.972919</td>
-<td style="text-align: right;">0.00951972</td>
+<td style="text-align: right;">0.976313</td>
+<td style="text-align: right;">0.0093707</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">47</td>
-<td style="text-align: left;">hsa-miR-200b-3p</td>
-<td style="text-align: left;">hsa-miR-93-5p</td>
-<td style="text-align: right;">0.971509</td>
-<td style="text-align: right;">0.00992335</td>
+<td style="text-align: left;">hsa-miR-200c-3p</td>
+<td style="text-align: left;">hsa-miR-25-3p</td>
+<td style="text-align: right;">0.971038</td>
+<td style="text-align: right;">0.00978752</td>
 </tr>
 </tbody>
 </table>
@@ -956,7 +956,7 @@ P(Source, Target) \neq P(Target, Source)
 <div class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>dP_mir_mrna <span class="op">=</span> <span class="fu">findr</span>(dt, dm, FDR<span class="op">=</span><span class="fl">0.01</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="10">
-<div><div style="float: left;"><span>52031×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">52006 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<div><div style="float: left;"><span>56268×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">56243 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame table table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
 <tr class="header header">
@@ -977,92 +977,92 @@ P(Source, Target) \neq P(Target, Source)
 <tbody>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">1</td>
-<td style="text-align: left;">hsa-let-7b-5p</td>
-<td style="text-align: left;">ENSG00000197182.8</td>
+<td style="text-align: left;">hsa-miR-3150b-3p</td>
+<td style="text-align: left;">ENSG00000245080.3</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">2</td>
 <td style="text-align: left;">hsa-let-7b-5p</td>
-<td style="text-align: left;">ENSG00000241990.1</td>
+<td style="text-align: left;">ENSG00000197182.8</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">3</td>
-<td style="text-align: left;">hsa-miR-335-5p</td>
-<td style="text-align: left;">ENSG00000106484.8</td>
+<td style="text-align: left;">hsa-let-7b-5p</td>
+<td style="text-align: left;">ENSG00000241990.1</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">4</td>
 <td style="text-align: left;">hsa-miR-335-5p</td>
-<td style="text-align: left;">ENSG00000128510.5</td>
+<td style="text-align: left;">ENSG00000106484.8</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">5</td>
 <td style="text-align: left;">hsa-miR-335-5p</td>
-<td style="text-align: left;">ENSG00000220884.2</td>
+<td style="text-align: left;">ENSG00000128510.5</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">6</td>
-<td style="text-align: left;">hsa-miR-618-5p</td>
-<td style="text-align: left;">ENSG00000111052.3</td>
+<td style="text-align: left;">hsa-miR-335-5p</td>
+<td style="text-align: left;">ENSG00000220884.2</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">7</td>
-<td style="text-align: left;">hsa-miR-335-3p</td>
-<td style="text-align: left;">ENSG00000106484.8</td>
+<td style="text-align: left;">hsa-miR-618-5p</td>
+<td style="text-align: left;">ENSG00000111052.3</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">8</td>
 <td style="text-align: left;">hsa-miR-335-3p</td>
-<td style="text-align: left;">ENSG00000128510.5</td>
+<td style="text-align: left;">ENSG00000106484.8</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">9</td>
 <td style="text-align: left;">hsa-miR-335-3p</td>
-<td style="text-align: left;">ENSG00000220884.2</td>
+<td style="text-align: left;">ENSG00000128510.5</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="even">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">10</td>
+<td style="text-align: left;">hsa-miR-335-3p</td>
+<td style="text-align: left;">ENSG00000220884.2</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">0.0</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">11</td>
+<td style="text-align: left;">hsa-let-7b-3p</td>
+<td style="text-align: left;">ENSG00000241990.1</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">0.0</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">12</td>
 <td style="text-align: left;">hsa-miR-138-1-3p</td>
 <td style="text-align: left;">ENSG00000261786.1</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">11</td>
-<td style="text-align: left;">hsa-miR-143-3p</td>
-<td style="text-align: left;">ENSG00000249959.1</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">0.0</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">12</td>
-<td style="text-align: left;">hsa-miR-151a-3p</td>
-<td style="text-align: left;">ENSG00000169398.14</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">0.0</td>
-</tr>
-<tr class="odd">
 <td class="rowNumber" style="text-align: right; font-weight: bold;">13</td>
-<td style="text-align: left;">hsa-miR-151a-5p</td>
-<td style="text-align: left;">ENSG00000169398.14</td>
+<td style="text-align: left;">hsa-miR-138-1-5p</td>
+<td style="text-align: left;">ENSG00000261786.1</td>
 <td style="text-align: right;">1.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
@@ -1074,88 +1074,88 @@ P(Source, Target) \neq P(Target, Source)
 <td style="text-align: right;">⋮</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52020</td>
-<td style="text-align: left;">hsa-miR-181b-1-5p</td>
-<td style="text-align: left;">ENSG00000220785.3</td>
-<td style="text-align: right;">0.973752</td>
-<td style="text-align: right;">0.00999638</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56257</td>
+<td style="text-align: left;">hsa-miR-3909-3p</td>
+<td style="text-align: left;">ENSG00000143028.7</td>
+<td style="text-align: right;">0.973468</td>
+<td style="text-align: right;">0.00999676</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52021</td>
-<td style="text-align: left;">hsa-miR-2116-3p</td>
-<td style="text-align: left;">ENSG00000249274.1</td>
-<td style="text-align: right;">0.973752</td>
-<td style="text-align: right;">0.00999669</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56258</td>
+<td style="text-align: left;">hsa-miR-193b-3p</td>
+<td style="text-align: left;">ENSG00000198833.5</td>
+<td style="text-align: right;">0.973467</td>
+<td style="text-align: right;">0.00999706</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52022</td>
-<td style="text-align: left;">hsa-miR-184-3p</td>
-<td style="text-align: left;">ENSG00000258749.1</td>
-<td style="text-align: right;">0.973749</td>
-<td style="text-align: right;">0.00999701</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56259</td>
+<td style="text-align: left;">hsa-miR-148a-3p</td>
+<td style="text-align: left;">ENSG00000112697.10</td>
+<td style="text-align: right;">0.973467</td>
+<td style="text-align: right;">0.00999735</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52023</td>
-<td style="text-align: left;">hsa-miR-582-5p</td>
-<td style="text-align: left;">ENSG00000214389.2</td>
-<td style="text-align: right;">0.973748</td>
-<td style="text-align: right;">0.00999732</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56260</td>
+<td style="text-align: left;">hsa-miR-425-3p</td>
+<td style="text-align: left;">ENSG00000072195.9</td>
+<td style="text-align: right;">0.973467</td>
+<td style="text-align: right;">0.00999764</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52024</td>
-<td style="text-align: left;">hsa-miR-4424-3p</td>
-<td style="text-align: left;">ENSG00000225507.1</td>
-<td style="text-align: right;">0.973748</td>
-<td style="text-align: right;">0.00999763</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52025</td>
-<td style="text-align: left;">hsa-miR-150-3p</td>
-<td style="text-align: left;">ENSG00000243014.1</td>
-<td style="text-align: right;">0.973748</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56261</td>
+<td style="text-align: left;">hsa-miR-210-5p</td>
+<td style="text-align: left;">ENSG00000013503.4</td>
+<td style="text-align: right;">0.973466</td>
 <td style="text-align: right;">0.00999794</td>
 </tr>
-<tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52026</td>
-<td style="text-align: left;">hsa-miR-128-1-5p</td>
-<td style="text-align: left;">ENSG00000168234.6</td>
-<td style="text-align: right;">0.973747</td>
-<td style="text-align: right;">0.00999826</td>
-</tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52027</td>
-<td style="text-align: left;">hsa-miR-3176-3p</td>
-<td style="text-align: left;">ENSG00000063322.6</td>
-<td style="text-align: right;">0.973747</td>
-<td style="text-align: right;">0.00999857</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56262</td>
+<td style="text-align: left;">hsa-miR-625-5p</td>
+<td style="text-align: left;">ENSG00000214121.3</td>
+<td style="text-align: right;">0.973465</td>
+<td style="text-align: right;">0.00999823</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52028</td>
-<td style="text-align: left;">hsa-miR-146a-5p</td>
-<td style="text-align: left;">ENSG00000214193.5</td>
-<td style="text-align: right;">0.973747</td>
-<td style="text-align: right;">0.00999888</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56263</td>
+<td style="text-align: left;">hsa-miR-1301-3p</td>
+<td style="text-align: left;">ENSG00000231752.1</td>
+<td style="text-align: right;">0.973465</td>
+<td style="text-align: right;">0.00999853</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52029</td>
-<td style="text-align: left;">hsa-miR-181c-3p</td>
-<td style="text-align: left;">ENSG00000128692.7</td>
-<td style="text-align: right;">0.973747</td>
-<td style="text-align: right;">0.00999919</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56264</td>
+<td style="text-align: left;">hsa-miR-582-5p</td>
+<td style="text-align: left;">ENSG00000231752.1</td>
+<td style="text-align: right;">0.973463</td>
+<td style="text-align: right;">0.00999882</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52030</td>
-<td style="text-align: left;">hsa-miR-22-3p</td>
-<td style="text-align: left;">ENSG00000236285.1</td>
-<td style="text-align: right;">0.973746</td>
-<td style="text-align: right;">0.0099995</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56265</td>
+<td style="text-align: left;">hsa-miR-132-3p</td>
+<td style="text-align: left;">ENSG00000158406.2</td>
+<td style="text-align: right;">0.973463</td>
+<td style="text-align: right;">0.00999911</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">52031</td>
-<td style="text-align: left;">hsa-miR-486-5p</td>
-<td style="text-align: left;">ENSG00000160145.10</td>
-<td style="text-align: right;">0.973746</td>
-<td style="text-align: right;">0.00999982</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56266</td>
+<td style="text-align: left;">hsa-miR-196a-2-5p</td>
+<td style="text-align: left;">ENSG00000229446.1</td>
+<td style="text-align: right;">0.973462</td>
+<td style="text-align: right;">0.00999941</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56267</td>
+<td style="text-align: left;">hsa-miR-29b-1-5p</td>
+<td style="text-align: left;">ENSG00000188010.8</td>
+<td style="text-align: right;">0.973461</td>
+<td style="text-align: right;">0.0099997</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">56268</td>
+<td style="text-align: left;">hsa-miR-125a-5p</td>
+<td style="text-align: left;">ENSG00000047932.9</td>
+<td style="text-align: right;">0.973461</td>
+<td style="text-align: right;">0.01</td>
 </tr>
 </tbody>
 </table>
