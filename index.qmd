@@ -1,14 +1,14 @@
 ---
-title: "Findr Tutorials"
+title: "BioFindr Tutorials"
 ---
 
-Welcome to a set of tutorials for the [Findr.jl][1] package, an implementation of the [Findr software](https://github.com/lingfeiwang/findr) in [Julia](https://julialang.org/). Findr is a software package for [coexpression analysis](coexpression.qmd), [association analysis](association.qmd), and [causal inference](causal-inference.qmd) from multi-omics data.
+Welcome to a set of tutorials for the [BioFindr.jl][1] package, an implementation of the [Findr software](https://github.com/lingfeiwang/findr) in [Julia](https://julialang.org/). BioFindr is a software package for [coexpression analysis](coexpression.qmd), [association analysis](association.qmd), and [causal inference](causal-inference.qmd) from multi-omics data.
 
-The methods implemented in Findr were developed by [Lingfei Wang](https://github.com/lingfeiwang) and [Tom Michoel](https://tmichoel.github.io), and were first described in the paper ["Efficient and accurate causal inference with hidden confounders from genome-transcriptome variation data"](https://doi.org/10.1371/journal.pcbi.1005703).
+The methods implemented in BioFindr were developed by [Lingfei Wang](https://github.com/lingfeiwang) and [Tom Michoel](https://tmichoel.github.io), and were first described in the paper ["Efficient and accurate causal inference with hidden confounders from genome-transcriptome variation data"](https://doi.org/10.1371/journal.pcbi.1005703).
 
-These tutorials should be read alongside the [Findr.jl documentation][2]. Make sure to read the [installation instructions](installation.qmd) if you want to run these tutorials locally.
+These tutorials should be read alongside the [BioFindr.jl documentation][2]. Make sure to read the [installation instructions](installation.qmd) if you want to run these tutorials locally.
 
 
 
-[1]: https://github.com/tmichoel/Findr.jl
-[2]: https://tmichoel.github.io/Findr.jl/dev/
+[1]: https://github.com/tmichoel/BioFindr.jl
+[2]: https://tmichoel.github.io/BioFindr.jl/dev/

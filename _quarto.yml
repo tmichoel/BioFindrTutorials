@@ -7,7 +7,7 @@ project:
   post-render: mv *.ipynb notebooks/
 
 website:
-  title: "Findr Tutorials"
+  title: "BioFindr Tutorials"
   navbar:
     search: true
   sidebar:

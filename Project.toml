@@ -1,4 +1,4 @@
-name = "FindrTutorials"
+name = "BioFindrTutorials"
 authors = ["tmichoel"]
 
 [deps]
@@ -7,7 +7,7 @@ CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
-Findr = "77580646-997d-4218-a3cc-42097ecd1c68"
+BioFindr = "77580646-997d-4218-a3cc-42097ecd1c68"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"

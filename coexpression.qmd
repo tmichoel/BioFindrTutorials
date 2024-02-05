@@ -10,9 +10,9 @@ execute:
 ---
 ## Introduction
 
-While [Findr.jl][1] is developed primarily for causal inference from genomics and transcriptomics data, coexpression analysis of transcriptomics data alone is also possible. In coexpression analysis, pairwise correlation is used as a simple measure for the probability of two genes being functionally related either through direct or indirect regulation, or through coregulation by a third factor. In [Findr.jl][1], significance of pairwise correlation is computed using a gene-specific background distribution, allowing for genes having different biological roles. For instance, it is known that many biological networks are [scale-free](https://en.wikipedia.org/wiki/Scale-free_network), where a small number of so-called "hub genes" have a high number of interaction partners while most other genes only have few. In [Findr.jl][1], this is accomodated by modelling the distribution of correlation values between a given gene $A$ and all other genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null $B$ gene for a given $A$ gene, and is fitted for every $A$ gene separately.
+While [BioFindr.jl][1] is developed primarily for causal inference from genomics and transcriptomics data, coexpression analysis of transcriptomics data alone is also possible. In coexpression analysis, pairwise correlation is used as a simple measure for the probability of two genes being functionally related either through direct or indirect regulation, or through coregulation by a third factor. In [BioFindr.jl][1], significance of pairwise correlation is computed using a gene-specific background distribution, allowing for genes having different biological roles. For instance, it is known that many biological networks are [scale-free](https://en.wikipedia.org/wiki/Scale-free_network), where a small number of so-called "hub genes" have a high number of interaction partners while most other genes only have few. In [BioFindr.jl][1], this is accomodated by modelling the distribution of correlation values between a given gene $A$ and all other genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null $B$ gene for a given $A$ gene, and is fitted for every $A$ gene separately.
 
-We will illustrate how to run coexpression analysis with [Findr.jl][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.
+We will illustrate how to run coexpression analysis with [BioFindr.jl][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.
 
 ## Set up the environment
 
@@ -26,14 +26,14 @@ using DataFrames
 using Arrow
 using Markdown
 
-using Findr
+using BioFindr
 ```
 
 ## Load expression data
 
-[Findr.jl][1] expects that expression data are stored in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples. An expression [DataFrame][4] should not contain any other columns (e.g. gene annotation) than gene expression columns, and gene expression data should be stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). Internally, [Findr.jl][1] operates on matrices, and if you have an expression [DataFrame][4] `df`, then `Matrix(df)` should return a matrix of floats.
+[BioFindr.jl][1] expects that expression data are stored in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples. An expression [DataFrame][4] should not contain any other columns (e.g. gene annotation) than gene expression columns, and gene expression data should be stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). Internally, [BioFindr.jl][1] operates on matrices, and if you have an expression [DataFrame][4] `df`, then `Matrix(df)` should return a matrix of floats.
 
-At the moment, [Findr.jl][1] does not support count-based expression data being provided as a [DataFrame][4] of integers. This is not an intrinsic limitation of the method, but simply to distinguish expression data from integer-valued genotype data. Future versions will remove this limitation by supporting [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/).
+At the moment, [BioFindr.jl][1] does not support count-based expression data being provided as a [DataFrame][4] of integers. This is not an intrinsic limitation of the method, but simply to distinguish expression data from integer-valued genotype data. Future versions will remove this limitation by supporting [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/).
 
 This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called `dt`, and one for microRNA (miRNA) expression data called `dm`:
 
@@ -56,7 +56,7 @@ We can confirm that the data frames are of the right type:
 [typeof(Matrix(dt)) typeof(Matrix(dm))]
 ```
 
-## Run Findr.jl
+## Run BioFindr.jl
 
 ### All-vs-all coexpression analysis
 
@@ -66,7 +66,7 @@ The simplest type of coexpression analysis tests for non-zero correlation among 
 dP_mir_all = findr(dm, FDR=0.05)
 ```
 
-Findr computes a [posterior probability](https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/) of non-zero correlation for every **Source** and **Target** gene pair. By default the output is sorted by decreasing **Probability** and self-interactions are excluded. The optional parameter **FDR** can be used to limit the output to the set of pairs that has a [global false discovery rate (FDR)](https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure) less than a desired value. The **qvalue** column in the output can be used for further filtering of the output. Say you ran findr with an FRD threshold of 5% as above. If you now want to restrict the output to an FDR threshold of 1%, you can do:
+BioFindr computes a [posterior probability](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/) of non-zero correlation for every **Source** and **Target** gene pair. By default the output is sorted by decreasing **Probability** and self-interactions are excluded. The optional parameter **FDR** can be used to limit the output to the set of pairs that has a [global false discovery rate (FDR)](https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure) less than a desired value. The **qvalue** column in the output can be used for further filtering of the output. Say you ran findr with an FRD threshold of 5% as above. If you now want to restrict the output to an FDR threshold of 1%, you can do:
 
 ```{julia}
 filter!(row -> row.qvalue <= 0.01, dP_mir_all)
@@ -74,7 +74,7 @@ filter!(row -> row.qvalue <= 0.01, dP_mir_all)
 
 Note that the [`filter!`](https://dataframes.juliadata.org/stable/lib/functions/#Base.filter!) command modifies the input DataFrame in-place, that is, the rows not matching the selection criteria are deleted. Use [`filter`](https://dataframes.juliadata.org/stable/lib/functions/#Base.filter) to return a new DataFrame with the selected rows.
 
-Finally, remember that the output of coexpression analysis in Findr is *not* symmetric, that is
+Finally, remember that the output of coexpression analysis in BioFindr is *not* symmetric, that is
 
 $$
 P(Source, Target) \neq P(Target, Source)
@@ -84,7 +84,7 @@ This is because the posterior probabilities are estimated using a Source-specifi
 
 ### Bipartite coexpression analysis
 
-Since Findr's posterior probabilities are Source gene-specific, we may be interested in computing probabilities only for a subset of Source genes, or using different Source and Target gene sets. 
+Since BioFindr's posterior probabilities are Source gene-specific, we may be interested in computing probabilities only for a subset of Source genes, or using different Source and Target gene sets. 
 
 As an example of the first scenario, assume we are interested in finding microRNAs that are significantly correlated with microRNAs from the [Mir-200 family](https://en.wikipedia.org/wiki/Mir-200). First find the Mir-200 microRNAs:
 
@@ -108,7 +108,7 @@ dP_mir_mrna = findr(dt, dm, FDR=0.01)
 
 Note the order of the arguments: here we tested all microRNAs as $A$ or Source genes (`dm` argument) against all mRNA transcripts as $B$ or Target genes (`dt` argument), that is, background distributions are fitted for each microRNA (column of `dm`) from the log-likelihood ratios for all 23,722 mRNAs (columns of `dt`).
 
-[1]: https://github.com/tmichoel/Findr.jl
+[1]: https://github.com/tmichoel/BioFindr.jl
 [2]: https://github.com/lingfeiwang/findr-data-geuvadis
 [3]: https://doi.org/10.1038/nature12531
 [4]: https://dataframes.juliadata.org/stable/

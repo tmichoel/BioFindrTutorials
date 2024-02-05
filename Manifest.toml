@@ -361,9 +361,9 @@ git-tree-sha1 = "f372472e8672b1d993e93dada09e23139b509f9e"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
 version = "1.5.0"
 
-[[deps.Findr]]
+[[deps.BioFindr]]
 deps = ["DataFrames", "Distributions", "Documenter", "InvertedIndices", "KernelDensity", "LinearAlgebra", "LiveServer", "Random", "Revise", "SpecialFunctions", "Statistics", "StatsBase", "StatsPlots"]
-path = "C:\\Users\\tmich\\.julia\\dev\\Findr"
+path = "C:\\Users\\tmich\\.julia\\dev\\BioFindr"
 uuid = "77580646-997d-4218-a3cc-42097ecd1c68"
 version = "0.1.0"
 

@@ -1,5 +1,5 @@
 using DrWatson, Test
-@quickactivate "FindrTutorials"
+@quickactivate "BioFindrTutorials"
 
 # Here you include files using `srcdir`
 # include(srcdir("file.jl"))
@@ -8,7 +8,7 @@ using DrWatson, Test
 println("Starting tests")
 ti = time()
 
-@testset "FindrTutorials tests" begin
+@testset "BioFindrTutorials tests" begin
     @test 1 == 1
 end
 

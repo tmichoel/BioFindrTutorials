@@ -10,7 +10,7 @@ execute:
 ---
 ## Introduction
 
-Internally, all [Findr.jl][1] functions work with matrices or array-based data, and the [DataFrame](https://dataframes.juliadata.org/stable/) based `findr` methods used in the [coexpression analysis](coexpression.qmd), [association analysis](association.qmd), and [causal inference](causal-inference.qmd) tutorials are wrapper functions provided for convenience. If you prefer matrix-based data over DataFrames, you can directly use matrix-based `findr` methods without having to create DataFrames first.
+Internally, all [BioFindr.jl][1] functions work with matrices or array-based data, and the [DataFrame](https://dataframes.juliadata.org/stable/) based `findr` methods used in the [coexpression analysis](coexpression.qmd), [association analysis](association.qmd), and [causal inference](causal-inference.qmd) tutorials are wrapper functions provided for convenience. If you prefer matrix-based data over DataFrames, you can directly use matrix-based `findr` methods without having to create DataFrames first.
 
 ## Set up the environment
 
@@ -21,7 +21,7 @@ quickactivate(@__DIR__)
 using DataFrames
 using Arrow
 
-using Findr
+using BioFindr
 ```
 
 ## Load data
@@ -45,9 +45,9 @@ end
 
 Note that data must be stored in matrices where **columns correspond to variables** (genes, SNPs, etc.) and **rows correspond to observations** (samples).
 
-## Run Findr.jl
+## Run BioFindr.jl
 
-Below, we only show the relevant `findr` commands. Check the corresponding tutorials and [Findr.jl documentation][6] for more details. 
+Below, we only show the relevant `findr` commands. Check the corresponding tutorials and [BioFindr.jl documentation][6] for more details. 
 
 ### Coexpression analysis
 
@@ -65,7 +65,7 @@ $$
 P_{i,j} = P(X_j \to X_i)
 $$
 
-Note that the diagonal is arbitrarily set to one, Findr cannot make any inferences about the presence or absence of self-regulation!
+Note that the diagonal is arbitrarily set to one, BioFindr cannot make any inferences about the presence or absence of self-regulation!
 
 #### Bipartite
 
@@ -100,7 +100,7 @@ $$
 
 #### Subset-to-all
 
-When you run causal inference with `findr` using matrix-based inputs, the default is to return posterior probabilities for [each test](https://tmichoel.github.io/Findr.jl/dev/realLLR/) separately:
+When you run causal inference with `findr` using matrix-based inputs, the default is to return posterior probabilities for [each test](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/) separately:
 
 ```{julia}
 P = findr(Xm,Gm,mirpairs);
@@ -118,9 +118,9 @@ The third dimension indexes the A-genes (causes), the second dimension the tests
 P = findr(Xm,Gm,mirpairs; combination="IV");
 ```
 
-[1]: https://github.com/tmichoel/Findr.jl
+[1]: https://github.com/tmichoel/BioFindr.jl
 [2]: https://github.com/lingfeiwang/findr-data-geuvadis
 [3]: https://doi.org/10.1038/nature12531
 [4]: https://dataframes.juliadata.org/stable/
 [5]: https://doi.org/10.1371/journal.pcbi.1005703
-[6]: https://tmichoel.github.io/Findr.jl/dev/
+[6]: https://tmichoel.github.io/BioFindr.jl/dev/

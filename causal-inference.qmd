@@ -10,12 +10,12 @@ execute:
 ---
 ## Introduction
 
-The primary use of [Findr.jl][1] is for causal inference from genomics and transcriptomics data. In causal inference, cis-acting eQTLs are used as causal anchors or instrumental variables to orient the direction of causality between coexpressed genes, see the [Findr paper][5] for more details. As in [coexpression analysis](coexpression.qmd) and [association analysis](association.qmd), the significance of a causal effect is computed using a gene-specific background distribution. This is again achieved by modelling the distribution of test statistics between a given gene $A$ and all other genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null $B$ gene for a given $A$ gene, and is fitted for every $A$ gene separately.
+The primary use of [BioFindr.jl][1] is for causal inference from genomics and transcriptomics data. In causal inference, cis-acting eQTLs are used as causal anchors or instrumental variables to orient the direction of causality between coexpressed genes, see the [Findr paper][5] for more details. As in [coexpression analysis](coexpression.qmd) and [association analysis](association.qmd), the significance of a causal effect is computed using a gene-specific background distribution. This is again achieved by modelling the distribution of test statistics between a given gene $A$ and all other genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null $B$ gene for a given $A$ gene, and is fitted for every $A$ gene separately.
 
-Unlike in [coexpression analysis](coexpression.qmd) and [association analysis](association.qmd), causal inference cannot be performed using a single statistical test, but requires the combination of multiple tests. In [Findr.jl][1], [six likelihood ratio tests](https://tmichoel.github.io/Findr.jl/dev/realLLR/) are implemented, which can be combined in multiple ways for causal inference. Tests are combined by addition or mulitplication of the [posterior probabilities](https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/) of individial tests, an approach first proposed in [this paper](https://doi.org/10.1186/gb-2007-8-10-r219).
+Unlike in [coexpression analysis](coexpression.qmd) and [association analysis](association.qmd), causal inference cannot be performed using a single statistical test, but requires the combination of multiple tests. In [BioFindr.jl][1], [six likelihood ratio tests](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/) are implemented, which can be combined in multiple ways for causal inference. Tests are combined by addition or mulitplication of the [posterior probabilities](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/) of individial tests, an approach first proposed in [this paper](https://doi.org/10.1186/gb-2007-8-10-r219).
 
 
-We will illustrate how to run causal inference with [Findr.jl][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.
+We will illustrate how to run causal inference with [BioFindr.jl][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.
 
 ## Set up the environment
 
@@ -26,14 +26,14 @@ quickactivate(@__DIR__)
 using DataFrames
 using Arrow
 
-using Findr
+using BioFindr
 ```
 
 ## Load data
 
 ### Expression data
 
-[Findr.jl][1] expects that expression data are stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples, see the [coexpression analysis tutorial](coexpression.qmd) for more details.
+[BioFindr.jl][1] expects that expression data are stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples, see the [coexpression analysis tutorial](coexpression.qmd) for more details.
 
 This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called `dt`, and one for microRNA (miRNA) expression data called `dm`:
 
@@ -44,7 +44,7 @@ dm = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dm.arrow"))
 
 ### Genotype data
 
-[Findr.jl][1] expects that genotype data are stored as [integer numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genetic variants) and rows to samples. [Findr.jl][1] uses a categorical model to associate genetic variation to variation in gene expression, hence how different genotypes (e.g. heterozygous vs. homozygous) are encoded as integers does not matter. Future versions will support [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/) for representing genotype data.
+[BioFindr.jl][1] expects that genotype data are stored as [integer numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genetic variants) and rows to samples. [BioFindr.jl][1] uses a categorical model to associate genetic variation to variation in gene expression, hence how different genotypes (e.g. heterozygous vs. homozygous) are encoded as integers does not matter. Future versions will support [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/) for representing genotype data.
 
 This tutorial uses two tables of expression data from the same set of samples, one with genotypes for mRNA eQTLs called `dgt`, and one for microRNA (miRNA) eQTLs called `dgm`:
 
@@ -55,14 +55,14 @@ dgm = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dgm.arrow"
 
 ### eQTL mapping data
 
-The [preprocessed GEUVADIS data][2] has been organized such that each column of the genotype data is the strongest eQTLs for the corresponding column in the matching expression data. Usually however, eQTL mapping data will be available in the form of a table with variant IDs, gene IDs, and various eQTL associaion statistics (see the [original GEUVADIS file](https://www.ebi.ac.uk/biostudies/files/E-GEUV-1/E-GEUV-1/analysis_results/EUR373.gene.cis.FDR5.all.rs137.txt.gz) for an example). [Findr.jl][1] expects that such a table is read into a [DataFrame][4], and that only the best (most strongly associated) eQTL is kept for each gene, that is, genes appear only once in the eQTL mapping table. Let's artificially create such tables for our data:
+The [preprocessed GEUVADIS data][2] has been organized such that each column of the genotype data is the strongest eQTLs for the corresponding column in the matching expression data. Usually however, eQTL mapping data will be available in the form of a table with variant IDs, gene IDs, and various eQTL associaion statistics (see the [original GEUVADIS file](https://www.ebi.ac.uk/biostudies/files/E-GEUV-1/E-GEUV-1/analysis_results/EUR373.gene.cis.FDR5.all.rs137.txt.gz) for an example). [BioFindr.jl][1] expects that such a table is read into a [DataFrame][4], and that only the best (most strongly associated) eQTL is kept for each gene, that is, genes appear only once in the eQTL mapping table. Let's artificially create such tables for our data:
 
 ```{julia}
 dpt = DataFrame(SNP_ID = names(dgt), GENE_ID=names(dt)[1:ncol(dgt)]);
 dpm = DataFrame(SNP_ID = names(dgm), GENE_ID=names(dm)[1:ncol(dgm)]);
 ```
 
-## Run Findr.jl
+## Run BioFindr.jl
 
 ### Subset-to-all causal inference
 
@@ -72,13 +72,13 @@ In the most common scenario, we have a dataset of gene expression values, with s
 dP = findr(dm, dgm, dpm; FDR=0.1)
 ```
 
-Findr computes a [posterior probability](https://tmichoel.github.io/Findr.jl/dev/posteriorprobs/) of a non-zero causal interaction for every pair pf **Source** and **Target** genes (columns of `dm`). The possible **Source** genes are the eGenes, the subset of genes with cis-eQTLs (columns of `dgm`), as defined by the eQTL-to-gene mapping in `dpm`.
+BioFindr computes a [posterior probability](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/) of a non-zero causal interaction for every pair pf **Source** and **Target** genes (columns of `dm`). The possible **Source** genes are the eGenes, the subset of genes with cis-eQTLs (columns of `dgm`), as defined by the eQTL-to-gene mapping in `dpm`.
 
 By default the output is sorted by decreasing **Probability**. The optional parameter **FDR** can be used to limit the output to the set of pairs that has a [global false discovery rate (FDR)](https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure) less than a desired value (here set to 10%). The **qvalue** column in the output can be used for further filtering of the output, see the [coexpression analysis tutorial](coexpression.qmd) for more details.
 
 Note the order of input arguments: first `dm`, the expression data, then `dgm`, the genotype data, and then `dpm`, the eQTL mapping of variants to eGenes.
 
-By default, Findr assumes that the first column of `dpm` is a list of variant names that can be found in the column names of `dgm`, and that the second column of `dpm` is a list of gene names that can be found in the column names of `dm`:
+By default, BioFindr assumes that the first column of `dpm` is a list of variant names that can be found in the column names of `dgm`, and that the second column of `dpm` is a list of gene names that can be found in the column names of `dm`:
 
 ```{julia}
 dpm
@@ -110,7 +110,7 @@ dP = findr(dt, dm, dgm, dpm; FDR=0.1)
 
 ### Causal test combinations
 
-As indicated above, causal inference requires the combination of multiple statistical tests, and [Findr.jl][1] supports [multiple such combinations](https://tmichoel.github.io/Findr.jl/dev/testLLR/#Causal-inference), each with their own strengths and weaknesses. Comparisons between the different methods can be found in the [original Findr paper][5] and in a [follow-up paper][6]. In brief, the following combinations are available:
+As indicated above, causal inference requires the combination of multiple statistical tests, and [BioFindr.jl][1] supports [multiple such combinations](https://tmichoel.github.io/BioFindr.jl/dev/testLLR/#Causal-inference), each with their own strengths and weaknesses. Comparisons between the different methods can be found in the [original BioFindr paper][5] and in a [follow-up paper][6]. In brief, the following combinations are available:
 
 #### Instrumental variables (default)
 
@@ -134,15 +134,15 @@ The *mediation test* infers a causal $A\to B$ interaction if there is a genetic 
 dP_med = findr(dm, dgm, dpm; FDR=0.1, combination="mediation");
 ```
 
-#### Original Findr combination
+#### Original BioFindr combination
 
-In the [original Findr paper][5], a new test combination was proposed that combines the instrumental variable test combination with a new [relevance test](https://tmichoel.github.io/Findr.jl/dev/realLLR/#Relevance-test). On simulated data, this new combination further reduced the false negative rate compared to the IV combination. at the expense of an increased false positive rate, for an overall improved performance. However, the relevance test does not have a clear genetic or causal interpretation, and on real data, performance is generally equivalent to the IV combination, and therefore the IV combination is now recommended as the default. To use the original Findr test combination, set the optional parameter `combination="orig"`:
+In the [original BioFindr paper][5], a new test combination was proposed that combines the instrumental variable test combination with a new [relevance test](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#Relevance-test). On simulated data, this new combination further reduced the false negative rate compared to the IV combination. at the expense of an increased false positive rate, for an overall improved performance. However, the relevance test does not have a clear genetic or causal interpretation, and on real data, performance is generally equivalent to the IV combination, and therefore the IV combination is now recommended as the default. To use the original BioFindr test combination, set the optional parameter `combination="orig"`:
 
 ```{julia}
 dP_orig = findr(dm, dgm, dpm; FDR=0.1, combination="orig");
 ```
 
-[1]: https://github.com/tmichoel/Findr.jl
+[1]: https://github.com/tmichoel/BioFindr.jl
 [2]: https://github.com/lingfeiwang/findr-data-geuvadis
 [3]: https://doi.org/10.1038/nature12531
 [4]: https://dataframes.juliadata.org/stable/

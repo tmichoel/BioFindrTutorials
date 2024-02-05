@@ -1,5 +1,5 @@
 using DrWatson
-@quickactivate "FindrTutorials"
+@quickactivate "BioFindrTutorials"
 
 using DataFrames
 using CSV

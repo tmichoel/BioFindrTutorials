@@ -21,31 +21,31 @@ Extensions or plugings for [VS Code](https://www.julia-vscode.org/), [Emacs](htt
 
 To run the tutorial notebooks, you need [IJulia](https://github.com/JuliaLang/IJulia.jl). If you installed Quarto, follow [these instructions](https://quarto.org/docs/computations/julia.html#installation) to make sure Quarto can use IJulia to render documents with embedded Julia code.
 
-## Install Findr.jl
+## Install BioFindr.jl
 
-[Findr.jl][1] is not yet a [registered package](https://github.com/JuliaRegistries/General). To install it, follow the [instructions for adding unregistered packages](https://pkgdocs.julialang.org/v1/managing-packages/#Adding-unregistered-packages). If you're new to using [Pkg](https://pkgdocs.julialang.org/v1/),  Julia's package manager, see the [Getting Started](https://pkgdocs.julialang.org/v1/getting-started/) notes. 
+[BioFindr.jl][1] is not yet a [registered package](https://github.com/JuliaRegistries/General). To install it, follow the [instructions for adding unregistered packages](https://pkgdocs.julialang.org/v1/managing-packages/#Adding-unregistered-packages). If you're new to using [Pkg](https://pkgdocs.julialang.org/v1/),  Julia's package manager, see the [Getting Started](https://pkgdocs.julialang.org/v1/getting-started/) notes. 
 
 Open a Julia console and enter the Pkg REPL by pressing `]` from the Julia REPL. Then:
 
 
 ```julia
-pkg> add https://github.com/tmichoel/Findr.jl
+pkg> add https://github.com/tmichoel/BioFindr.jl
 ```
 
 or if you want to use the SSH-based `git` protocol:
 
 ```julia
-pkg> add "git@github.com:tmichoel/Findr.jl.git"
+pkg> add "git@github.com:tmichoel/BioFindr.jl.git"
 ```
 
 
 
-## Install the FindrTutorials repository
+## Install the BioFindrTutorials repository
 
-The [FindrTutorials repository](https://github.com/tmichoel/FindrTutorials) uses [DrWatson](https://juliadynamics.github.io/DrWatson.jl/stable/)
+The [BioFindrTutorials repository](https://github.com/tmichoel/BioFindrTutorials) uses [DrWatson](https://juliadynamics.github.io/DrWatson.jl/stable/)
 to make a reproducible scientific project named
 
-> FindrTutorials
+> BioFindrTutorials
 
 To (locally) reproduce this project, do the following:
 
@@ -65,7 +65,7 @@ everything should work out of the box, including correctly finding local paths.
 You may notice that most scripts start with the commands:
 ```julia
 using DrWatson
-@quickactivate "FindrTutorials"
+@quickactivate "BioFindrTutorials"
 ```
 which auto-activate the project and enable local path handling from DrWatson.
 
@@ -99,7 +99,7 @@ The `scripts` folder of the project contains a number of files named `process_da
 
 You are now all set up to run the tutorials. You can either work directly with the `*.qmd` files in the `website` folder, or use the [jupyter](https://jupyter.org/) notebooks (`*.ipynb` files) in the `notebooks` folder. Make sure to have [IJulia](https://julialang.github.io/IJulia.jl/stable/) installed if using the latter option.
 
-[1]: https://github.com/tmichoel/Findr.jl
+[1]: https://github.com/tmichoel/BioFindr.jl
 [2]: https://github.com/lingfeiwang/findr-data-geuvadis
 [3]: https://doi.org/10.1038/nature12531
 [4]: https://dataframes.juliadata.org/stable/
