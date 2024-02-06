@@ -3,7 +3,7 @@ title: "Causal inference"
 format:
   html:
     code-fold: false
-jupyter: julia-1.9
+jupyter: julia-1.8
 execute: 
   cache: true
   keep-ipynb: true
