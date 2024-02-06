@@ -3,7 +3,7 @@ title: "Coexpression analysis"
 format:
   html: default
   ipynb: default
-jupyter: julia-1.7
+jupyter: julia-1.9
 execute: 
   cache: true
   keep-ipynb: true
