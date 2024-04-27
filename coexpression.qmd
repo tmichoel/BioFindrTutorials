@@ -3,16 +3,16 @@ title: "Coexpression analysis"
 format:
   html: default
   ipynb: default
-jupyter: julia-1.9
+jupyter: julia-1.10
 execute: 
   cache: true
   keep-ipynb: true
 ---
 ## Introduction
 
-While [BioFindr.jl][1] is developed primarily for causal inference from genomics and transcriptomics data, coexpression analysis of transcriptomics data alone is also possible. In coexpression analysis, pairwise correlation is used as a simple measure for the probability of two genes being functionally related either through direct or indirect regulation, or through coregulation by a third factor. In [BioFindr.jl][1], significance of pairwise correlation is computed using a gene-specific background distribution, allowing for genes having different biological roles. For instance, it is known that many biological networks are [scale-free](https://en.wikipedia.org/wiki/Scale-free_network), where a small number of so-called "hub genes" have a high number of interaction partners while most other genes only have few. In [BioFindr.jl][1], this is accomodated by modelling the distribution of correlation values between a given gene $A$ and all other genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null $B$ gene for a given $A$ gene, and is fitted for every $A$ gene separately.
+While [BioFindr] is developed primarily for causal inference from genomics and transcriptomics data, coexpression analysis of transcriptomics data alone is also possible. In coexpression analysis, pairwise correlation is used as a simple measure for the probability of two genes being functionally related either through direct or indirect regulation, or through coregulation by a third factor. In [BioFindr][1], significance of pairwise correlation is computed using a gene-specific background distribution, allowing for genes having different biological roles. For instance, it is known that many biological networks are [scale-free](https://en.wikipedia.org/wiki/Scale-free_network), where a small number of so-called "hub genes" have a high number of interaction partners while most other genes only have few. In [BioFindr][1], this is accomodated by modelling the distribution of correlation values between a given gene $A$ and all other genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null $B$ gene for a given $A$ gene, and is fitted for every $A$ gene separately.
 
-We will illustrate how to run coexpression analysis with [BioFindr.jl][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.
+We will illustrate how to run coexpression analysis with [BioFindr][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.
 
 ## Set up the environment
 
@@ -31,9 +31,9 @@ using BioFindr
 
 ## Load expression data
 
-[BioFindr.jl][1] expects that expression data are stored in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples. An expression [DataFrame][4] should not contain any other columns (e.g. gene annotation) than gene expression columns, and gene expression data should be stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). Internally, [BioFindr.jl][1] operates on matrices, and if you have an expression [DataFrame][4] `df`, then `Matrix(df)` should return a matrix of floats.
+[BioFindr][1] expects that expression data are stored in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples. An expression [DataFrame][4] should not contain any other columns (e.g. gene annotation) than gene expression columns, and gene expression data should be stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). Internally, [BioFindr][1] operates on matrices, and if you have an expression [DataFrame][4] `df`, then `Matrix(df)` should return a matrix of floats.
 
-At the moment, [BioFindr.jl][1] does not support count-based expression data being provided as a [DataFrame][4] of integers. This is not an intrinsic limitation of the method, but simply to distinguish expression data from integer-valued genotype data. Future versions will remove this limitation by supporting [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/).
+At the moment, [BioFindr][1] does not support count-based expression data being provided as a [DataFrame][4] of integers. This is not an intrinsic limitation of the method, but simply to distinguish expression data from integer-valued genotype data. Future versions will remove this limitation by supporting [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/).
 
 This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called `dt`, and one for microRNA (miRNA) expression data called `dm`:
 
@@ -56,7 +56,7 @@ We can confirm that the data frames are of the right type:
 [typeof(Matrix(dt)) typeof(Matrix(dm))]
 ```
 
-## Run BioFindr.jl
+## Run BioFindr
 
 ### All-vs-all coexpression analysis
 

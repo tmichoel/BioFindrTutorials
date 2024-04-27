@@ -3,14 +3,14 @@ title: "Matrix-based data"
 format:
   html:
     code-fold: false
-jupyter: julia-1.9
+jupyter: julia-1.10
 execute: 
   cache: true
   keep-ipynb: true
 ---
 ## Introduction
 
-Internally, all [BioFindr.jl][1] functions work with matrices or array-based data, and the [DataFrame](https://dataframes.juliadata.org/stable/) based `findr` methods used in the [coexpression analysis](coexpression.qmd), [association analysis](association.qmd), and [causal inference](causal-inference.qmd) tutorials are wrapper functions provided for convenience. If you prefer matrix-based data over DataFrames, you can directly use matrix-based `findr` methods without having to create DataFrames first.
+Internally, all [BioFindr][1] functions work with matrices or array-based data, and the [DataFrame](https://dataframes.juliadata.org/stable/) based `findr` methods used in the [coexpression analysis](coexpression.qmd), [association analysis](association.qmd), and [causal inference](causal-inference.qmd) tutorials are wrapper functions provided for convenience. If you prefer matrix-based data over DataFrames, you can directly use matrix-based `findr` methods without having to create DataFrames first.
 
 ## Set up the environment
 
@@ -45,9 +45,9 @@ end
 
 Note that data must be stored in matrices where **columns correspond to variables** (genes, SNPs, etc.) and **rows correspond to observations** (samples).
 
-## Run BioFindr.jl
+## Run BioFindr
 
-Below, we only show the relevant `findr` commands. Check the corresponding tutorials and [BioFindr.jl documentation][6] for more details. 
+Below, we only show the relevant `findr` commands. Check the corresponding tutorials and [BioFindr documentation][6] for more details. 
 
 ### Coexpression analysis
 

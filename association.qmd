@@ -3,16 +3,16 @@ title: "Association analysis"
 format:
   html:
     code-fold: false
-jupyter: julia-1.9
+jupyter: julia-1.10
 execute: 
   cache: true
   keep-ipynb: true
 ---
 ## Introduction
 
-While [BioFindr.jl][1] is developed primarily for causal inference from genomics and transcriptomics data, association analysis between genomics and transcriptomics data is also possible. In association analysis, genetic effects on the transcriptome are measured by testing if genes are differentially expressed in different groups of samples defined by the genotype of a genetic variant of interest. In [BioFindr.jl][1], significance of association is computed using a [categorical model](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR) and a variant-specific background distribution. Similar to what was done in the [coexpression analysis tutorial](coexpression.qmd), this is achieved by modelling the distribution of association values between a given variant $A$ and all genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) associations. The relative weight of each component then reflects the prior probability of finding a non-null $B$ gene for a given variant $A$, and is fitted for every $A$ separately.
+While [BioFindr][1] is developed primarily for causal inference from genomics and transcriptomics data, association analysis between genomics and transcriptomics data is also possible. In association analysis, genetic effects on the transcriptome are measured by testing if genes are differentially expressed in different groups of samples defined by the genotype of a genetic variant of interest. In [BioFindr][1], significance of association is computed using a [categorical model](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR) and a variant-specific background distribution. Similar to what was done in the [coexpression analysis tutorial](coexpression.qmd), this is achieved by modelling the distribution of association values between a given variant $A$ and all genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) associations. The relative weight of each component then reflects the prior probability of finding a non-null $B$ gene for a given variant $A$, and is fitted for every $A$ separately.
 
-We will illustrate how to run association analysis with [BioFindr.jl][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.
+We will illustrate how to run association analysis with [BioFindr][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.
 
 ## Set up the environment
 
@@ -32,7 +32,7 @@ using BioFindr
 
 ### Expression data
 
-[BioFindr.jl][1] expects that expression data are stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples, see the [coexpression analysis tutorial](coexpression.qmd) for more details.
+[BioFindr][1] expects that expression data are stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples, see the [coexpression analysis tutorial](coexpression.qmd) for more details.
 
 This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called `dt`, and one for microRNA (miRNA) expression data called `dm`:
 
@@ -43,7 +43,7 @@ dm = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dm.arrow"))
 
 ### Genotype data
 
-[BioFindr.jl][1] expects that genotype data are stored as [integer numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genetic variants) and rows to samples. Since [BioFindr.jl][1] uses a [categorical association model](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR), it does not matter how different genotypes (e.g. heterozygous vs. homozygous) are encoded as integers. Future versions will support [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/) for representing genotype data.
+[BioFindr][1] expects that genotype data are stored as [integer numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genetic variants) and rows to samples. Since [BioFindr][1] uses a [categorical association model](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR), it does not matter how different genotypes (e.g. heterozygous vs. homozygous) are encoded as integers. Future versions will support [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/) for representing genotype data.
 
 This tutorial uses two tables of genotype data from the same set of samples as the expression data, one with genotypes for mRNA eQTLs called `dgt`, and one for microRNA (miRNA) eQTLs called `dgm`:
 
@@ -52,7 +52,7 @@ dgt = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dgt.arrow"
 dgm = DataFrame(Arrow.Table(datadir("exp_pro","findr-data-geuvadis", "dgm.arrow")));
 ```
 
-## Run BioFindr.jl
+## Run BioFindr
 
 Assume we are interested in identifying mRNA genes whose expression levels are associated to microRNA eQTLs. We run:
 

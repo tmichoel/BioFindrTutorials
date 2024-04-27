@@ -3,14 +3,14 @@ title: "Internal functions"
 format:
   html:
     code-fold: false
-jupyter: julia-1.9
+jupyter: julia-1.10
 execute: 
   cache: true
   keep-ipynb: true
 ---
 ## Introduction
 
-The only function [exported](https://docs.julialang.org/en/v1/manual/modules/#Export-lists) by [BioFindr.jl][1] is the [`findr`](https://tmichoel.github.io/BioFindr.jl/dev/testLLR/) function itself. Nevertheless, many of the internal functions may be useful when digging deeper in the results for specific genes. The [package documentation][6] contains detailed descriptions of all package functions, intertwined with the methods section of the [original paper][5], and should give a good overview of what is available. To illustrate how these functions can be used, we will reproduce the following figure ([Supplementary Fig. S1](https://doi.org/10.1371/journal.pcbi.1005703.s002) from the  [original paper][5]):
+The only function [exported](https://docs.julialang.org/en/v1/manual/modules/#Export-lists) by [BioFindr][1] is the [`findr`](https://tmichoel.github.io/BioFindr.jl/dev/testLLR/) function itself. Nevertheless, many of the internal functions may be useful when digging deeper in the results for specific genes. The [package documentation][6] contains detailed descriptions of all package functions, intertwined with the methods section of the [original paper][5], and should give a good overview of what is available. To illustrate how these functions can be used, we will reproduce the following figure ([Supplementary Fig. S1](https://doi.org/10.1371/journal.pcbi.1005703.s002) from the  [original paper][5]):
 
 ![LLR distribution of the relevance test for hsa-miR-200b-3p on 23722 potential targets of Geuvadis dataset.](figures/eg4.png)
 
@@ -56,7 +56,7 @@ mirA = "hsa-miR-200b-3p";
 
 ### Convert the data
 
-Internally, all [BioFindr.jl][1] functions use matrix-based inputs and [supernormalized data](https://tmichoel.github.io/BioFindr.jl/dev/inference/). The easiest way to convert our data is to run `supernormalize` on the initial data:
+Internally, all [BioFindr][1] functions use matrix-based inputs and [supernormalized data](https://tmichoel.github.io/BioFindr.jl/dev/inference/). The easiest way to convert our data is to run `supernormalize` on the initial data:
 
 ```{julia}
 Yt = BioFindr.supernormalize(dt);
