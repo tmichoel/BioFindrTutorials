@@ -2,42 +2,46 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://tmichoel.github.io/BioFindrTutorials/parallelization.html</loc>
-    <lastmod>2024-04-27T09:03:49.383Z</lastmod>
+    <lastmod>2024-04-27T20:47:55.589Z</lastmod>
   </url>
   <url>
     <loc>https://tmichoel.github.io/BioFindrTutorials/internal-functions-2.html</loc>
-    <lastmod>2024-04-27T09:03:48.051Z</lastmod>
+    <lastmod>2024-04-27T20:47:54.227Z</lastmod>
   </url>
   <url>
     <loc>https://tmichoel.github.io/BioFindrTutorials/installation.html</loc>
-    <lastmod>2024-04-27T09:03:45.251Z</lastmod>
+    <lastmod>2024-04-27T20:47:51.499Z</lastmod>
   </url>
   <url>
-    <loc>https://tmichoel.github.io/BioFindrTutorials/coexpression.html</loc>
-    <lastmod>2024-04-27T09:03:44.379Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tmichoel.github.io/BioFindrTutorials/association.html</loc>
-    <lastmod>2024-04-27T09:03:39.099Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tmichoel.github.io/BioFindrTutorials/about.html</loc>
-    <lastmod>2024-04-27T09:03:33.911Z</lastmod>
+    <loc>https://tmichoel.github.io/BioFindrTutorials/dag.html</loc>
+    <lastmod>2024-04-27T20:47:50.620Z</lastmod>
   </url>
   <url>
     <loc>https://tmichoel.github.io/BioFindrTutorials/causal-inference.html</loc>
-    <lastmod>2024-04-27T09:03:40.992Z</lastmod>
+    <lastmod>2024-04-27T20:47:44.597Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tmichoel.github.io/BioFindrTutorials/about.html</loc>
+    <lastmod>2024-04-27T20:47:36.922Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tmichoel.github.io/BioFindrTutorials/association.html</loc>
+    <lastmod>2024-04-27T20:47:42.725Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tmichoel.github.io/BioFindrTutorials/coexpression.html</loc>
+    <lastmod>2024-04-27T20:47:48.570Z</lastmod>
   </url>
   <url>
     <loc>https://tmichoel.github.io/BioFindrTutorials/index.html</loc>
-    <lastmod>2024-04-27T09:03:44.767Z</lastmod>
+    <lastmod>2024-04-27T20:47:51.012Z</lastmod>
   </url>
   <url>
     <loc>https://tmichoel.github.io/BioFindrTutorials/internal-functions-1.html</loc>
-    <lastmod>2024-04-27T09:03:46.906Z</lastmod>
+    <lastmod>2024-04-27T20:47:53.121Z</lastmod>
   </url>
   <url>
     <loc>https://tmichoel.github.io/BioFindrTutorials/matrix-data.html</loc>
-    <lastmod>2024-04-27T09:03:48.999Z</lastmod>
+    <lastmod>2024-04-27T20:47:55.207Z</lastmod>
   </url>
 </urlset>

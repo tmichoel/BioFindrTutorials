@@ -154,7 +154,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
- <span class="menu-text">First steps</span></a>
+ <span class="menu-text">Basic usage</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -176,6 +176,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="./causal-inference.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Causal inference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./dag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DAG construction</span></a>
   </div>
 </li>
       </ul>
@@ -274,6 +280,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> is a <a href="https://github.com/JuliaRegistries/General">registered Julia package</a>. To install it, open a Julia console and enter the Pkg REPL by pressing <code>]</code> from the Julia REPL. Then:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pkg<span class="op">&gt;</span> add BioFindr</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>See the <a href="https://pkgdocs.julialang.org/v1/managing-packages/#Adding-packages">Pkg documentation</a> for more information. If you’re new to using <a href="https://pkgdocs.julialang.org/v1/">Pkg</a>, Julia’s package manager, see the <a href="https://pkgdocs.julialang.org/v1/getting-started/">Getting Started</a> notes.</p>
+<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> is still under development and new features are added regularly. Make sure to update your installation regularly:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pkg<span class="op">&gt;</span> up BioFindr</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="install-the-biofindrtutorials-repository" class="level2">
 <h2 class="anchored" data-anchor-id="install-the-biofindrtutorials-repository">Install the BioFindrTutorials repository</h2>
@@ -291,8 +299,8 @@ julia&gt; Pkg.instantiate()</code></pre></li>
 </ol>
 <p>This will install all necessary packages for you to be able to run the scripts and everything should work out of the box, including correctly finding local paths.</p>
 <p>You may notice that most scripts start with the commands:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@quickactivate</span> <span class="st">"BioFindrTutorials"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@quickactivate</span> <span class="st">"BioFindrTutorials"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>which auto-activate the project and enable local path handling from DrWatson.</p>
 </section>
 <section id="download-and-preprocess-data" class="level2">
