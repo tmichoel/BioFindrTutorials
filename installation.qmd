@@ -31,6 +31,11 @@ pkg> add BioFindr
 
 See the [Pkg documentation](https://pkgdocs.julialang.org/v1/managing-packages/#Adding-packages) for more information. If you're new to using [Pkg](https://pkgdocs.julialang.org/v1/),  Julia's package manager, see the [Getting Started](https://pkgdocs.julialang.org/v1/getting-started/) notes. 
 
+[BioFindr][1] is still under development and new features are added regularly. Make sure to update your installation regularly:
+
+```julia
+pkg> up BioFindr
+```
 
 ## Install the BioFindrTutorials repository
 

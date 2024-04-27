@@ -4,7 +4,7 @@ project:
     - "*.qmd"
     - "!notebooks/"
     - "!scripts/"
-  post-render: mv *.ipynb notebooks/
+  #post-render: mv *.ipynb notebooks/
 
 website:
   title: "BioFindr Tutorials"
