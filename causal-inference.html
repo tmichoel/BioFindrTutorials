@@ -232,7 +232,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#genotype-data" id="toc-genotype-data" class="nav-link" data-scroll-target="#genotype-data">Genotype data</a></li>
   <li><a href="#eqtl-mapping-data" id="toc-eqtl-mapping-data" class="nav-link" data-scroll-target="#eqtl-mapping-data">eQTL mapping data</a></li>
   </ul></li>
-  <li><a href="#run-biofindr.jl" id="toc-run-biofindr.jl" class="nav-link" data-scroll-target="#run-biofindr.jl">Run BioFindr.jl</a>
+  <li><a href="#run-biofindr" id="toc-run-biofindr" class="nav-link" data-scroll-target="#run-biofindr">Run BioFindr</a>
   <ul class="collapse">
   <li><a href="#subset-to-all-causal-inference" id="toc-subset-to-all-causal-inference" class="nav-link" data-scroll-target="#subset-to-all-causal-inference">Subset-to-all causal inference</a></li>
   <li><a href="#bipartite-causal-inference" id="toc-bipartite-causal-inference" class="nav-link" data-scroll-target="#bipartite-causal-inference">Bipartite causal inference</a></li>
@@ -263,13 +263,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>The primary use of <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> is for causal inference from genomics and transcriptomics data. In causal inference, cis-acting eQTLs are used as causal anchors or instrumental variables to orient the direction of causality between coexpressed genes, see the <a href="https://doi.org/10.1371/journal.pcbi.1005703">Findr paper</a> for more details. As in <a href="./coexpression.html">coexpression analysis</a> and <a href="./association.html">association analysis</a>, the significance of a causal effect is computed using a gene-specific background distribution. This is again achieved by modelling the distribution of test statistics between a given gene <span class="math inline">\(A\)</span> and all other genes <span class="math inline">\(B\)</span> as a <a href="https://en.wikipedia.org/wiki/Mixture_distribution">mixture distribution</a> of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null <span class="math inline">\(B\)</span> gene for a given <span class="math inline">\(A\)</span> gene, and is fitted for every <span class="math inline">\(A\)</span> gene separately.</p>
-<p>Unlike in <a href="./coexpression.html">coexpression analysis</a> and <a href="./association.html">association analysis</a>, causal inference cannot be performed using a single statistical test, but requires the combination of multiple tests. In <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a>, <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/">six likelihood ratio tests</a> are implemented, which can be combined in multiple ways for causal inference. Tests are combined by addition or mulitplication of the <a href="https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/">posterior probabilities</a> of individial tests, an approach first proposed in <a href="https://doi.org/10.1186/gb-2007-8-10-r219">this paper</a>.</p>
-<p>We will illustrate how to run causal inference with <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> using <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed data</a> from the <a href="https://doi.org/10.1038/nature12531">GEUVADIS study</a>. See the <a href="./installation.html">installation instructions</a> for the steps you need to take to reproduce this tutorial.</p>
+<p>The primary use of <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> is for causal inference from genomics and transcriptomics data. In causal inference, cis-acting eQTLs are used as causal anchors or instrumental variables to orient the direction of causality between coexpressed genes, see the <a href="https://doi.org/10.1371/journal.pcbi.1005703">Findr paper</a> for more details. As in <a href="./coexpression.html">coexpression analysis</a> and <a href="./association.html">association analysis</a>, the significance of a causal effect is computed using a gene-specific background distribution. This is again achieved by modelling the distribution of test statistics between a given gene <span class="math inline">\(A\)</span> and all other genes <span class="math inline">\(B\)</span> as a <a href="https://en.wikipedia.org/wiki/Mixture_distribution">mixture distribution</a> of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null <span class="math inline">\(B\)</span> gene for a given <span class="math inline">\(A\)</span> gene, and is fitted for every <span class="math inline">\(A\)</span> gene separately.</p>
+<p>Unlike in <a href="./coexpression.html">coexpression analysis</a> and <a href="./association.html">association analysis</a>, causal inference cannot be performed using a single statistical test, but requires the combination of multiple tests. In <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a>, <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/">six likelihood ratio tests</a> are implemented, which can be combined in multiple ways for causal inference. Tests are combined by addition or mulitplication of the <a href="https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/">posterior probabilities</a> of individial tests, an approach first proposed in <a href="https://doi.org/10.1186/gb-2007-8-10-r219">this paper</a>.</p>
+<p>We will illustrate how to run causal inference with <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> using <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed data</a> from the <a href="https://doi.org/10.1038/nature12531">GEUVADIS study</a>. See the <a href="./installation.html">installation instructions</a> for the steps you need to take to reproduce this tutorial.</p>
 </section>
 <section id="set-up-the-environment" class="level2">
 <h2 class="anchored" data-anchor-id="set-up-the-environment">Set up the environment</h2>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quickactivate</span>(<span class="pp">@__DIR__</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -283,40 +283,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="load-data">Load data</h2>
 <section id="expression-data" class="level3">
 <h3 class="anchored" data-anchor-id="expression-data">Expression data</h3>
-<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> expects that expression data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">floating-point numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genes) and rows to samples, see the <a href="./coexpression.html">coexpression analysis tutorial</a> for more details.</p>
+<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> expects that expression data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">floating-point numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genes) and rows to samples, see the <a href="./coexpression.html">coexpression analysis tutorial</a> for more details.</p>
 <p>This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called <code>dt</code>, and one for microRNA (miRNA) expression data called <code>dm</code>:</p>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dt.arrow"</span>)));</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>dm <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dm.arrow"</span>)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="genotype-data" class="level3">
 <h3 class="anchored" data-anchor-id="genotype-data">Genotype data</h3>
-<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> expects that genotype data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">integer numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genetic variants) and rows to samples. <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> uses a categorical model to associate genetic variation to variation in gene expression, hence how different genotypes (e.g.&nbsp;heterozygous vs.&nbsp;homozygous) are encoded as integers does not matter. Future versions will support <a href="https://juliaai.github.io/ScientificTypes.jl/dev/">scientific types</a> for representing genotype data.</p>
+<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> expects that genotype data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">integer numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genetic variants) and rows to samples. <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> uses a categorical model to associate genetic variation to variation in gene expression, hence how different genotypes (e.g.&nbsp;heterozygous vs.&nbsp;homozygous) are encoded as integers does not matter. Future versions will support <a href="https://juliaai.github.io/ScientificTypes.jl/dev/">scientific types</a> for representing genotype data.</p>
 <p>This tutorial uses two tables of expression data from the same set of samples, one with genotypes for mRNA eQTLs called <code>dgt</code>, and one for microRNA (miRNA) eQTLs called <code>dgm</code>:</p>
-<div class="cell" data-execution_count="3">
+<div class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>dgt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgt.arrow"</span>)));</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>dgm <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgm.arrow"</span>)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="eqtl-mapping-data" class="level3">
 <h3 class="anchored" data-anchor-id="eqtl-mapping-data">eQTL mapping data</h3>
-<p>The <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed GEUVADIS data</a> has been organized such that each column of the genotype data is the strongest eQTLs for the corresponding column in the matching expression data. Usually however, eQTL mapping data will be available in the form of a table with variant IDs, gene IDs, and various eQTL associaion statistics (see the <a href="https://www.ebi.ac.uk/biostudies/files/E-GEUV-1/E-GEUV-1/analysis_results/EUR373.gene.cis.FDR5.all.rs137.txt.gz">original GEUVADIS file</a> for an example). <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> expects that such a table is read into a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a>, and that only the best (most strongly associated) eQTL is kept for each gene, that is, genes appear only once in the eQTL mapping table. Let’s artificially create such tables for our data:</p>
-<div class="cell" data-execution_count="4">
+<p>The <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed GEUVADIS data</a> has been organized such that each column of the genotype data is the strongest eQTLs for the corresponding column in the matching expression data. Usually however, eQTL mapping data will be available in the form of a table with variant IDs, gene IDs, and various eQTL associaion statistics (see the <a href="https://www.ebi.ac.uk/biostudies/files/E-GEUV-1/E-GEUV-1/analysis_results/EUR373.gene.cis.FDR5.all.rs137.txt.gz">original GEUVADIS file</a> for an example). <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> expects that such a table is read into a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a>, and that only the best (most strongly associated) eQTL is kept for each gene, that is, genes appear only once in the eQTL mapping table. Let’s artificially create such tables for our data:</p>
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>dpt <span class="op">=</span> <span class="fu">DataFrame</span>(SNP_ID <span class="op">=</span> <span class="fu">names</span>(dgt), GENE_ID<span class="op">=</span><span class="fu">names</span>(dt)[<span class="fl">1</span><span class="op">:</span><span class="fu">ncol</span>(dgt)]);</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>dpm <span class="op">=</span> <span class="fu">DataFrame</span>(SNP_ID <span class="op">=</span> <span class="fu">names</span>(dgm), GENE_ID<span class="op">=</span><span class="fu">names</span>(dm)[<span class="fl">1</span><span class="op">:</span><span class="fu">ncol</span>(dgm)]);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
-<section id="run-biofindr.jl" class="level2">
-<h2 class="anchored" data-anchor-id="run-biofindr.jl">Run BioFindr.jl</h2>
+<section id="run-biofindr" class="level2">
+<h2 class="anchored" data-anchor-id="run-biofindr">Run BioFindr</h2>
 <section id="subset-to-all-causal-inference" class="level3">
 <h3 class="anchored" data-anchor-id="subset-to-all-causal-inference">Subset-to-all causal inference</h3>
 <p>In the most common scenario, we have a dataset of gene expression values, with significant cis-eQTL instruments for a subset of genes (“eGenes”). We can then infer causal interactions from the eGenes to all other genes (including other eGenes). For instance, to infer causal microRNA <span class="math inline">\(\to\)</span> microRNA interaction, run:</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.25</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<div><div style="float: left;"><span>41×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">16 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<div><div style="float: left;"><span>84×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">59 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame table table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
 <tr class="header header">
@@ -434,88 +434,88 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: right;">⋮</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">30</td>
-<td style="text-align: left;">hsa-miR-589-5p</td>
-<td style="text-align: left;">hsa-miR-128-2-3p</td>
-<td style="text-align: right;">0.800821</td>
-<td style="text-align: right;">0.0406675</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">73</td>
+<td style="text-align: left;">hsa-miR-641-5p</td>
+<td style="text-align: left;">hsa-miR-26a-2-3p</td>
+<td style="text-align: right;">0.578209</td>
+<td style="text-align: right;">0.218109</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">31</td>
-<td style="text-align: left;">hsa-miR-3176-3p</td>
-<td style="text-align: left;">hsa-miR-19a-3p</td>
-<td style="text-align: right;">0.797987</td>
-<td style="text-align: right;">0.0458722</td>
-</tr>
-<tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">32</td>
-<td style="text-align: left;">hsa-miR-193b-3p</td>
-<td style="text-align: left;">hsa-miR-320b-2-3p</td>
-<td style="text-align: right;">0.766986</td>
-<td style="text-align: right;">0.0517204</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">33</td>
-<td style="text-align: left;">hsa-miR-193b-3p</td>
-<td style="text-align: left;">hsa-miR-615-3p</td>
-<td style="text-align: right;">0.760159</td>
-<td style="text-align: right;">0.057421</td>
-</tr>
-<tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">34</td>
-<td style="text-align: left;">hsa-miR-193b-3p</td>
-<td style="text-align: left;">hsa-miR-3944-3p</td>
-<td style="text-align: right;">0.760018</td>
-<td style="text-align: right;">0.0627904</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">35</td>
-<td style="text-align: left;">hsa-miR-339-5p</td>
-<td style="text-align: left;">hsa-miR-339-3p</td>
-<td style="text-align: right;">0.746762</td>
-<td style="text-align: right;">0.0682318</td>
-</tr>
-<tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">36</td>
-<td style="text-align: left;">hsa-miR-193b-3p</td>
-<td style="text-align: left;">hsa-miR-320b-1-3p</td>
-<td style="text-align: right;">0.740647</td>
-<td style="text-align: right;">0.0735407</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">37</td>
-<td style="text-align: left;">hsa-let-7b-5p</td>
-<td style="text-align: left;">hsa-let-7b-3p</td>
-<td style="text-align: right;">0.734285</td>
-<td style="text-align: right;">0.0787346</td>
-</tr>
-<tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">38</td>
-<td style="text-align: left;">hsa-miR-3176-3p</td>
-<td style="text-align: left;">hsa-miR-3181-5p</td>
-<td style="text-align: right;">0.732608</td>
-<td style="text-align: right;">0.0836993</td>
-</tr>
-<tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">39</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">74</td>
 <td style="text-align: left;">hsa-miR-1304-3p</td>
-<td style="text-align: left;">hsa-miR-548ar-5p</td>
-<td style="text-align: right;">0.729668</td>
-<td style="text-align: right;">0.0884848</td>
+<td style="text-align: left;">hsa-miR-619-5p</td>
+<td style="text-align: right;">0.574428</td>
+<td style="text-align: right;">0.220912</td>
 </tr>
 <tr class="odd">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">40</td>
-<td style="text-align: left;">hsa-miR-1307-5p</td>
-<td style="text-align: left;">hsa-miR-1307-3p</td>
-<td style="text-align: right;">0.713498</td>
-<td style="text-align: right;">0.0934352</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">75</td>
+<td style="text-align: left;">hsa-miR-3176-3p</td>
+<td style="text-align: left;">hsa-miR-143-3p</td>
+<td style="text-align: right;">0.572199</td>
+<td style="text-align: right;">0.223671</td>
 </tr>
 <tr class="even">
-<td class="rowNumber" style="text-align: right; font-weight: bold;">41</td>
+<td class="rowNumber" style="text-align: right; font-weight: bold;">76</td>
+<td style="text-align: left;">hsa-miR-96-5p</td>
+<td style="text-align: left;">hsa-miR-155-3p</td>
+<td style="text-align: right;">0.57146</td>
+<td style="text-align: right;">0.226367</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">77</td>
 <td style="text-align: left;">hsa-miR-3176-3p</td>
-<td style="text-align: left;">hsa-miR-24-1-3p</td>
-<td style="text-align: right;">0.701225</td>
-<td style="text-align: right;">0.0984435</td>
+<td style="text-align: left;">hsa-miR-30b-5p</td>
+<td style="text-align: right;">0.55876</td>
+<td style="text-align: right;">0.229157</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">78</td>
+<td style="text-align: left;">hsa-miR-3176-3p</td>
+<td style="text-align: left;">hsa-miR-4524a-5p</td>
+<td style="text-align: right;">0.557952</td>
+<td style="text-align: right;">0.231886</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">79</td>
+<td style="text-align: left;">hsa-miR-1304-3p</td>
+<td style="text-align: left;">hsa-miR-4421-3p</td>
+<td style="text-align: right;">0.556114</td>
+<td style="text-align: right;">0.23457</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">80</td>
+<td style="text-align: left;">hsa-miR-641-5p</td>
+<td style="text-align: left;">hsa-miR-629-5p</td>
+<td style="text-align: right;">0.550412</td>
+<td style="text-align: right;">0.237258</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">81</td>
+<td style="text-align: left;">hsa-miR-641-5p</td>
+<td style="text-align: left;">hsa-let-7d-5p</td>
+<td style="text-align: right;">0.541004</td>
+<td style="text-align: right;">0.239995</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">82</td>
+<td style="text-align: left;">hsa-miR-4482-1-3p</td>
+<td style="text-align: left;">hsa-miR-30a-3p</td>
+<td style="text-align: right;">0.537326</td>
+<td style="text-align: right;">0.242711</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">83</td>
+<td style="text-align: left;">hsa-miR-3176-3p</td>
+<td style="text-align: left;">hsa-miR-138-1-3p</td>
+<td style="text-align: right;">0.537207</td>
+<td style="text-align: right;">0.245362</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">84</td>
+<td style="text-align: left;">hsa-miR-193b-3p</td>
+<td style="text-align: left;">hsa-miR-181c-3p</td>
+<td style="text-align: right;">0.528992</td>
+<td style="text-align: right;">0.248049</td>
 </tr>
 </tbody>
 </table>
@@ -526,7 +526,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>By default the output is sorted by decreasing <strong>Probability</strong>. The optional parameter <strong>FDR</strong> can be used to limit the output to the set of pairs that has a <a href="https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure">global false discovery rate (FDR)</a> less than a desired value (here set to 10%). The <strong>qvalue</strong> column in the output can be used for further filtering of the output, see the <a href="./coexpression.html">coexpression analysis tutorial</a> for more details.</p>
 <p>Note the order of input arguments: first <code>dm</code>, the expression data, then <code>dgm</code>, the genotype data, and then <code>dpm</code>, the eQTL mapping of variants to eGenes.</p>
 <p>By default, BioFindr assumes that the first column of <code>dpm</code> is a list of variant names that can be found in the column names of <code>dgm</code>, and that the second column of <code>dpm</code> is a list of gene names that can be found in the column names of <code>dm</code>:</p>
-<div class="cell" data-execution_count="6">
+<div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>dpm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <div><div style="float: left;"><span>55×2 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">30 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -680,11 +680,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>If your eQTL mapping DataFrame has the relevant columns in a different place, you need to use the optional arguments <code>colX</code> (for the gene expression IDs) and <code>colG</code> (for the eQTL genotype IDs) to specify either the relevant columns index or name:</p>
-<div class="cell" data-execution_count="7">
+<div class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; colX<span class="op">=</span><span class="fl">2</span>, colG<span class="op">=</span><span class="fl">1</span>, FDR<span class="op">=</span><span class="fl">0.1</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>or</p>
-<div class="cell" data-execution_count="8">
+<div class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; colX<span class="op">=</span><span class="st">"GENE_ID"</span>, colG<span class="op">=</span><span class="st">"SNP_ID"</span>, FDR<span class="op">=</span><span class="fl">0.1</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Any other columns in the eQTL mapping DataFrame (such as association summary statistics) are ignored.</p>
@@ -692,7 +692,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="bipartite-causal-inference" class="level3">
 <h3 class="anchored" data-anchor-id="bipartite-causal-inference">Bipartite causal inference</h3>
 <p>In some applications, we have multiple omics datasets from the same samples, and may be interested in causal inference from one set of variables to another one. In the GEUVADIS study for instance, we may be interested in inferring causal interactions between microRNAs and target genes. To infer interactions <em>from</em> microRNAs <em>to</em> mRNAs, run:</p>
-<div class="cell" data-execution_count="9">
+<div class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dt, dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="10">
 <div><div style="float: left;"><span>36×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">11 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -904,29 +904,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="causal-test-combinations" class="level3">
 <h3 class="anchored" data-anchor-id="causal-test-combinations">Causal test combinations</h3>
-<p>As indicated above, causal inference requires the combination of multiple statistical tests, and <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> supports <a href="https://tmichoel.github.io/BioFindr.jl/dev/testLLR/#Causal-inference">multiple such combinations</a>, each with their own strengths and weaknesses. Comparisons between the different methods can be found in the <a href="https://doi.org/10.1371/journal.pcbi.1005703">original BioFindr paper</a> and in a <a href="https://doi.org/10.1039/D0MO00140F">follow-up paper</a>. In brief, the following combinations are available:</p>
+<p>As indicated above, causal inference requires the combination of multiple statistical tests, and <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> supports <a href="https://tmichoel.github.io/BioFindr.jl/dev/testLLR/#Causal-inference">multiple such combinations</a>, each with their own strengths and weaknesses. Comparisons between the different methods can be found in the <a href="https://doi.org/10.1371/journal.pcbi.1005703">original BioFindr paper</a> and in a <a href="https://doi.org/10.1039/D0MO00140F">follow-up paper</a>. In brief, the following combinations are available:</p>
 <section id="instrumental-variables-default" class="level4">
 <h4 class="anchored" data-anchor-id="instrumental-variables-default">Instrumental variables (default)</h4>
 <p>The <em>instrumental variables</em> (IV) test combination infers a causal <span class="math inline">\(A\to B\)</span> interaction if there is a genetic association <span class="math inline">\(E\to B\)</span>, where <span class="math inline">\(E\)</span> is the causal anchor (best cis-eQTL for <span class="math inline">\(A\)</span>), and if <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are not independently associated with <span class="math inline">\(E\)</span> (no pleiotropic effect). This test combination has been shown to provide a good balance between false negative and false positive rate and has a clear genetic interpretation. It is therefore recommended as the default combination. To use the instrumental variable test combination, you don’t need to do anything (it’s the default):</p>
-<div class="cell" data-execution_count="10">
+<div class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>or, you can explicitly set the optional parameter <code>combination="IV"</code>:</p>
-<div class="cell" data-execution_count="11">
+<div class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>, combination<span class="op">=</span><span class="st">"IV"</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="mediation" class="level4">
 <h4 class="anchored" data-anchor-id="mediation">Mediation</h4>
 <p>The <em>mediation test</em> infers a causal <span class="math inline">\(A\to B\)</span> interaction if there is a genetic association <span class="math inline">\(E\to B\)</span> and if this association disappears after conditioning on <span class="math inline">\(A\)</span>. If these two tests are true, the causal graph must be <span class="math inline">\(E\to A\to B\)</span>. As a result, this test combination has a very low false positive rate, but in most applications it is hampered by a high false negative rate: if <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are jointly regulated by a third factor <span class="math inline">\(C\)</span>, the mediation test will fail even in the presence of a true <span class="math inline">\(A\to B\)</span> interaction. To use the mediation test combination, set the optional parameter <code>combination="mediation"</code>:</p>
-<div class="cell" data-execution_count="12">
+<div class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>dP_med <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>, combination<span class="op">=</span><span class="st">"mediation"</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="original-biofindr-combination" class="level4">
 <h4 class="anchored" data-anchor-id="original-biofindr-combination">Original BioFindr combination</h4>
 <p>In the <a href="https://doi.org/10.1371/journal.pcbi.1005703">original BioFindr paper</a>, a new test combination was proposed that combines the instrumental variable test combination with a new <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#Relevance-test">relevance test</a>. On simulated data, this new combination further reduced the false negative rate compared to the IV combination. at the expense of an increased false positive rate, for an overall improved performance. However, the relevance test does not have a clear genetic or causal interpretation, and on real data, performance is generally equivalent to the IV combination, and therefore the IV combination is now recommended as the default. To use the original BioFindr test combination, set the optional parameter <code>combination="orig"</code>:</p>
-<div class="cell" data-execution_count="13">
+<div class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>dP_orig <span class="op">=</span> <span class="fu">findr</span>(dm, dgm, dpm; FDR<span class="op">=</span><span class="fl">0.1</span>, combination<span class="op">=</span><span class="st">"orig"</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 

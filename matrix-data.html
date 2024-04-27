@@ -224,7 +224,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
   <li><a href="#set-up-the-environment" id="toc-set-up-the-environment" class="nav-link" data-scroll-target="#set-up-the-environment">Set up the environment</a></li>
   <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data">Load data</a></li>
-  <li><a href="#run-biofindr.jl" id="toc-run-biofindr.jl" class="nav-link" data-scroll-target="#run-biofindr.jl">Run BioFindr.jl</a>
+  <li><a href="#run-biofindr" id="toc-run-biofindr" class="nav-link" data-scroll-target="#run-biofindr">Run BioFindr</a>
   <ul class="collapse">
   <li><a href="#coexpression-analysis" id="toc-coexpression-analysis" class="nav-link" data-scroll-target="#coexpression-analysis">Coexpression analysis</a></li>
   <li><a href="#association-analysis" id="toc-association-analysis" class="nav-link" data-scroll-target="#association-analysis">Association analysis</a></li>
@@ -255,11 +255,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>Internally, all <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> functions work with matrices or array-based data, and the <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> based <code>findr</code> methods used in the <a href="./coexpression.html">coexpression analysis</a>, <a href="./association.html">association analysis</a>, and <a href="./causal-inference.html">causal inference</a> tutorials are wrapper functions provided for convenience. If you prefer matrix-based data over DataFrames, you can directly use matrix-based <code>findr</code> methods without having to create DataFrames first.</p>
+<p>Internally, all <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> functions work with matrices or array-based data, and the <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> based <code>findr</code> methods used in the <a href="./coexpression.html">coexpression analysis</a>, <a href="./association.html">association analysis</a>, and <a href="./causal-inference.html">causal inference</a> tutorials are wrapper functions provided for convenience. If you prefer matrix-based data over DataFrames, you can directly use matrix-based <code>findr</code> methods without having to create DataFrames first.</p>
 </section>
 <section id="set-up-the-environment" class="level2">
 <h2 class="anchored" data-anchor-id="set-up-the-environment">Set up the environment</h2>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quickactivate</span>(<span class="pp">@__DIR__</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -272,13 +272,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="load-data" class="level2">
 <h2 class="anchored" data-anchor-id="load-data">Load data</h2>
 <p>Let’s pretend our GEUVADIS data is in a matrix-based format:</p>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Xt <span class="op">=</span> <span class="fu">Matrix</span>(<span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dt.arrow"</span>))));</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Xm <span class="op">=</span> <span class="fu">Matrix</span>(<span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dm.arrow"</span>))));</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>Gm <span class="op">=</span> <span class="fu">Matrix</span>(<span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgm.arrow"</span>))));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We also need the microRNA eQTL mapping (see the <a href="./causal-inference.html">causal inference tutorial</a>), in this case in the form of an array where each row corresponds to a cis-eQTL/eGene pair represented by of a column index of <code>Gm</code> (i.e.&nbsp;a SNP) and a column index of <code>Xm</code> (i.e.&nbsp;a microRNA). <a href="./causal-inference.html">Recall</a> that due to the preprocessing of the <a href="https://github.com/lingfeiwang/findr-data-geuvadis">findr-geuvadis</a> data. the column indices are identical, but this will not be the case in general:</p>
-<div class="cell" data-execution_count="3">
+<div class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>mirpairs <span class="op">=</span> <span class="fu">zeros</span>(<span class="dt">Int32</span>,<span class="fu">size</span>(Gm,<span class="fl">2</span>),<span class="fl">2</span>);</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(mirpairs,<span class="fl">1</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    mirpairs[k,<span class="op">:</span>] <span class="op">=</span> [k k]</span>
@@ -286,15 +286,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>Note that data must be stored in matrices where <strong>columns correspond to variables</strong> (genes, SNPs, etc.) and <strong>rows correspond to observations</strong> (samples).</p>
 </section>
-<section id="run-biofindr.jl" class="level2">
-<h2 class="anchored" data-anchor-id="run-biofindr.jl">Run BioFindr.jl</h2>
-<p>Below, we only show the relevant <code>findr</code> commands. Check the corresponding tutorials and <a href="https://tmichoel.github.io/BioFindr.jl/dev/">BioFindr.jl documentation</a> for more details.</p>
+<section id="run-biofindr" class="level2">
+<h2 class="anchored" data-anchor-id="run-biofindr">Run BioFindr</h2>
+<p>Below, we only show the relevant <code>findr</code> commands. Check the corresponding tutorials and <a href="https://tmichoel.github.io/BioFindr.jl/dev/">BioFindr documentation</a> for more details.</p>
 <section id="coexpression-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="coexpression-analysis">Coexpression analysis</h3>
 <section id="all-vs-all" class="level4">
 <h4 class="anchored" data-anchor-id="all-vs-all">All-vs-all</h4>
 <p>Coexpression analysis on a single matrix returns a square matrix with dimensions equal to the number of variables (columns) in the input matrix:</p>
-<div class="cell" data-execution_count="4">
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>674×674 Matrix{Float64}:
@@ -335,7 +335,7 @@ P_{i,j} = P(X_j \to X_i)
 <section id="bipartite" class="level4">
 <h4 class="anchored" data-anchor-id="bipartite">Bipartite</h4>
 <p>Analyse coexpression <em>from</em> a subset of variables <em>to</em> the whole set:</p>
-<div class="cell" data-execution_count="5">
+<div class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xm; cols<span class="op">=</span>[<span class="fl">1</span>,<span class="fl">3</span>,<span class="fl">7</span>,<span class="fl">50</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>674×4 Matrix{Float64}:
@@ -368,7 +368,7 @@ P_{i,j} = P(X_j \to X_i)
 </div>
 </div>
 <p>Analyse coexpression <em>from</em> the variables in <code>Xm</code> <em>to</em> the variables in <code>Xt</code>:</p>
-<div class="cell" data-execution_count="6">
+<div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xt,Xm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>23722×674 Matrix{Float64}:
@@ -405,7 +405,7 @@ P_{i,j} = P(X_j \to X_i)
 <section id="association-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="association-analysis">Association analysis</h3>
 <p>Testing associations between eQTL genotypes in <code>Gm</code>and microRNA expression levels in <code>Xm</code>:</p>
-<div class="cell" data-execution_count="7">
+<div class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xm,Gm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>674×55 Matrix{Float64}:
@@ -447,18 +447,18 @@ P_{i,j} = P(E_j \to X_i)
 <section id="subset-to-all" class="level4">
 <h4 class="anchored" data-anchor-id="subset-to-all">Subset-to-all</h4>
 <p>When you run causal inference with <code>findr</code> using matrix-based inputs, the default is to return posterior probabilities for <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/">each test</a> separately:</p>
-<div class="cell" data-execution_count="8">
+<div class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xm,Gm,mirpairs);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Note the dimensions of <code>P</code>:</p>
-<div class="cell" data-execution_count="9">
+<div class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">size</span>(P)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="10">
 <pre><code>(674, 4, 55)</code></pre>
 </div>
 </div>
 <p>The third dimension indexes the A-genes (causes), the second dimension the tests (test 2-5, see link above), and the first the B-genes (targets). If you are interested only in a specific combination, use the optional <code>combination</code> argument as explained in the <a href="./causal-inference.html">causal inference tutorial</a>:</p>
-<div class="cell" data-execution_count="10">
+<div class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xm,Gm,mirpairs; combination<span class="op">=</span><span class="st">"IV"</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 

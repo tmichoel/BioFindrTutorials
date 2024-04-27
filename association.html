@@ -231,7 +231,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#expression-data" id="toc-expression-data" class="nav-link" data-scroll-target="#expression-data">Expression data</a></li>
   <li><a href="#genotype-data" id="toc-genotype-data" class="nav-link" data-scroll-target="#genotype-data">Genotype data</a></li>
   </ul></li>
-  <li><a href="#run-biofindr.jl" id="toc-run-biofindr.jl" class="nav-link" data-scroll-target="#run-biofindr.jl">Run BioFindr.jl</a></li>
+  <li><a href="#run-biofindr" id="toc-run-biofindr" class="nav-link" data-scroll-target="#run-biofindr">Run BioFindr</a></li>
   </ul>
 </nav>
     </div>
@@ -257,13 +257,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>While <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> is developed primarily for causal inference from genomics and transcriptomics data, association analysis between genomics and transcriptomics data is also possible. In association analysis, genetic effects on the transcriptome are measured by testing if genes are differentially expressed in different groups of samples defined by the genotype of a genetic variant of interest. In <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a>, significance of association is computed using a <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR">categorical model</a> and a variant-specific background distribution. Similar to what was done in the <a href="./coexpression.html">coexpression analysis tutorial</a>, this is achieved by modelling the distribution of association values between a given variant <span class="math inline">\(A\)</span> and all genes <span class="math inline">\(B\)</span> as a <a href="https://en.wikipedia.org/wiki/Mixture_distribution">mixture distribution</a> of real and null (random) associations. The relative weight of each component then reflects the prior probability of finding a non-null <span class="math inline">\(B\)</span> gene for a given variant <span class="math inline">\(A\)</span>, and is fitted for every <span class="math inline">\(A\)</span> separately.</p>
-<p>We will illustrate how to run association analysis with <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> using <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed data</a> from the <a href="https://doi.org/10.1038/nature12531">GEUVADIS study</a>. See the <a href="./installation.html">installation instructions</a> for the steps you need to take to reproduce this tutorial.</p>
+<p>While <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> is developed primarily for causal inference from genomics and transcriptomics data, association analysis between genomics and transcriptomics data is also possible. In association analysis, genetic effects on the transcriptome are measured by testing if genes are differentially expressed in different groups of samples defined by the genotype of a genetic variant of interest. In <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a>, significance of association is computed using a <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR">categorical model</a> and a variant-specific background distribution. Similar to what was done in the <a href="./coexpression.html">coexpression analysis tutorial</a>, this is achieved by modelling the distribution of association values between a given variant <span class="math inline">\(A\)</span> and all genes <span class="math inline">\(B\)</span> as a <a href="https://en.wikipedia.org/wiki/Mixture_distribution">mixture distribution</a> of real and null (random) associations. The relative weight of each component then reflects the prior probability of finding a non-null <span class="math inline">\(B\)</span> gene for a given variant <span class="math inline">\(A\)</span>, and is fitted for every <span class="math inline">\(A\)</span> separately.</p>
+<p>We will illustrate how to run association analysis with <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> using <a href="https://github.com/lingfeiwang/findr-data-geuvadis">preprocessed data</a> from the <a href="https://doi.org/10.1038/nature12531">GEUVADIS study</a>. See the <a href="./installation.html">installation instructions</a> for the steps you need to take to reproduce this tutorial.</p>
 </section>
 <section id="set-up-the-environment" class="level2">
 <h2 class="anchored" data-anchor-id="set-up-the-environment">Set up the environment</h2>
 <p>We begin by setting up the environment and loading some necessary packages.</p>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quickactivate</span>(<span class="pp">@__DIR__</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -272,7 +272,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BioFindr</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>[ Info: Precompiling BioFindr [77580646-997d-4218-a3cc-42097ecd1c68]</code></pre>
+<pre><code>Precompiling Arrow
+  ✓ TimeZones
+  ✓ TimeZones → TimeZonesRecipesBaseExt
+  ✓ Arrow
+  3 dependencies successfully precompiled in 21 seconds. 33 already precompiled.
+Precompiling BioFindr
+  ✓ MetaGraphsNext
+  ✓ BioFindr
+  2 dependencies successfully precompiled in 9 seconds. 126 already precompiled.</code></pre>
 </div>
 </div>
 </section>
@@ -280,27 +288,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="load-data">Load data</h2>
 <section id="expression-data" class="level3">
 <h3 class="anchored" data-anchor-id="expression-data">Expression data</h3>
-<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> expects that expression data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">floating-point numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genes) and rows to samples, see the <a href="./coexpression.html">coexpression analysis tutorial</a> for more details.</p>
+<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> expects that expression data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">floating-point numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genes) and rows to samples, see the <a href="./coexpression.html">coexpression analysis tutorial</a> for more details.</p>
 <p>This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called <code>dt</code>, and one for microRNA (miRNA) expression data called <code>dm</code>:</p>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dt.arrow"</span>)));</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>dm <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dm.arrow"</span>)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="genotype-data" class="level3">
 <h3 class="anchored" data-anchor-id="genotype-data">Genotype data</h3>
-<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> expects that genotype data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">integer numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genetic variants) and rows to samples. Since <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> uses a <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR">categorical association model</a>, it does not matter how different genotypes (e.g.&nbsp;heterozygous vs.&nbsp;homozygous) are encoded as integers. Future versions will support <a href="https://juliaai.github.io/ScientificTypes.jl/dev/">scientific types</a> for representing genotype data.</p>
+<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> expects that genotype data are stored as <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/">integer numbers</a> in a <a href="https://dataframes.juliadata.org/stable/">DataFrame</a> where columns correspond to variables (genetic variants) and rows to samples. Since <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> uses a <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR">categorical association model</a>, it does not matter how different genotypes (e.g.&nbsp;heterozygous vs.&nbsp;homozygous) are encoded as integers. Future versions will support <a href="https://juliaai.github.io/ScientificTypes.jl/dev/">scientific types</a> for representing genotype data.</p>
 <p>This tutorial uses two tables of genotype data from the same set of samples as the expression data, one with genotypes for mRNA eQTLs called <code>dgt</code>, and one for microRNA (miRNA) eQTLs called <code>dgm</code>:</p>
-<div class="cell" data-execution_count="3">
+<div class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>dgt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgt.arrow"</span>)));</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>dgm <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgm.arrow"</span>)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
-<section id="run-biofindr.jl" class="level2">
-<h2 class="anchored" data-anchor-id="run-biofindr.jl">Run BioFindr.jl</h2>
+<section id="run-biofindr" class="level2">
+<h2 class="anchored" data-anchor-id="run-biofindr">Run BioFindr</h2>
 <p>Assume we are interested in identifying mRNA genes whose expression levels are associated to microRNA eQTLs. We run:</p>
-<div class="cell" data-execution_count="4">
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dP <span class="op">=</span> <span class="fu">findr</span>(dt, dgm, FDR<span class="op">=</span><span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div><div style="float: left;"><span>245×4 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">220 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">

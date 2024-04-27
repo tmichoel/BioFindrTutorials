@@ -255,12 +255,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>The only function <a href="https://docs.julialang.org/en/v1/manual/modules/#Export-lists">exported</a> by <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> is the <a href="https://tmichoel.github.io/BioFindr.jl/dev/testLLR/"><code>findr</code></a> function itself. Nevertheless, many of the internal functions may be useful when digging deeper in the results for specific genes. The <a href="https://tmichoel.github.io/BioFindr.jl/dev/">package documentation</a> contains detailed descriptions of all package functions, intertwined with the methods section of the <a href="https://doi.org/10.1371/journal.pcbi.1005703">original paper</a>, and should give a good overview of what is available.</p>
+<p>The only function <a href="https://docs.julialang.org/en/v1/manual/modules/#Export-lists">exported</a> by <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> is the <a href="https://tmichoel.github.io/BioFindr.jl/dev/testLLR/"><code>findr</code></a> function itself. Nevertheless, many of the internal functions may be useful when digging deeper in the results for specific genes. The <a href="https://tmichoel.github.io/BioFindr.jl/dev/">package documentation</a> contains detailed descriptions of all package functions, intertwined with the methods section of the <a href="https://doi.org/10.1371/journal.pcbi.1005703">original paper</a>, and should give a good overview of what is available.</p>
 <p>In this tutorial we consider the situation where you have a single gene of interest and want to compute genetic association statistics for a set of variants of interest (for instance when doing a GWAS analysis for that gene). The approach from the <a href="./association.html">association analysis tutorial</a> cannot be followed in this case, because the exported <a href="https://tmichoel.github.io/BioFindr.jl/dev/testLLR/"><code>findr</code></a> function assumes that many target genes (“B” genes) are tested against one or more variants and uses the distribution of likelihood ratios across all target genes for <a href="https://lab.michoel.info/BioFindr.jl/dev/posteriorprobs/">Bayesian inference of posterior probabilities</a>. If only one or a small number of genes are tested, this is no longer possible. Nevertheless it is still possible to compute p-values under the null hypothesis of the <a href="https://lab.michoel.info/BioFindr.jl/dev/realLLR/">linkage test</a> in this situation.</p>
 </section>
 <section id="set-up-the-environment" class="level2">
 <h2 class="anchored" data-anchor-id="set-up-the-environment">Set up the environment</h2>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quickactivate</span>(<span class="pp">@__DIR__</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -276,12 +276,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="load-data" class="level2">
 <h2 class="anchored" data-anchor-id="load-data">Load data</h2>
 <p>You should by now be familiar with the GEUVADIS data used in the <em>First steps</em> tutorials. Here we need the following files:</p>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dt.arrow"</span>)));</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>dg <span class="op">=</span> <span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgt.arrow"</span>)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Set the gene of interest:</p>
-<div class="cell" data-execution_count="3">
+<div class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>gene <span class="op">=</span> <span class="fu">names</span>(dt)[<span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>"ENSG00000125124.6"</code></pre>
@@ -292,16 +292,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="run-the-analysis">Run the analysis</h2>
 <section id="convert-the-data" class="level3">
 <h3 class="anchored" data-anchor-id="convert-the-data">Convert the data</h3>
-<p>Internally, all <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> functions use matrix-based inputs and <a href="https://tmichoel.github.io/BioFindr.jl/dev/inference/">supernormalized data</a>. The easiest way to convert our data is to run <code>supernormalize</code> on the initial data:</p>
-<div class="cell" data-execution_count="4">
+<p>Internally, all <a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> functions use matrix-based inputs and <a href="https://tmichoel.github.io/BioFindr.jl/dev/inference/">supernormalized data</a>. The easiest way to convert our data is to run <code>supernormalize</code> on the initial data:</p>
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Yg <span class="op">=</span> <span class="fu">vec</span>(BioFindr.<span class="fu">supernormalize</span>(<span class="fu">select</span>(dt,gene)));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>For the genotype data, no conversion is needed:</p>
-<div class="cell" data-execution_count="5">
+<div class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>G <span class="op">=</span> <span class="fu">Matrix</span>(dg);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We will also need the number of samples:</p>
-<div class="cell" data-execution_count="6">
+<div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ns <span class="op">=</span> <span class="fu">length</span>(Yg);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
@@ -316,7 +316,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <p>For genetic association testing, we only need the <strong>linkage</strong> test.</p>
 <p>Since <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#Implementation">all log-likelihood ratios are computed from the same summary statistics</a>, a single function computes them all. To compute the log-likelihood ratios for a specific A-gene (here: hsa-miR-200b-3p with column vector of expression data <code>Ym</code>) with a causal instrument (best eQTL) with genotype vector <code>E</code>, run:</p>
-<div class="cell" data-execution_count="7">
+<div class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>llr2 <span class="op">=</span> <span class="fu">zeros</span>(<span class="fu">size</span>(G,<span class="fl">2</span>))</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>pval <span class="op">=</span> <span class="fu">zeros</span>(<span class="fu">size</span>(G,<span class="fl">2</span>))</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="fu">axes</span>(G,<span class="fl">2</span>)</span>
@@ -326,7 +326,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Put the results in a DataFrame together with the SNP IDs, and sort by ascending p-value:</p>
-<div class="cell" data-execution_count="8">
+<div class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dp <span class="op">=</span> <span class="fu">DataFrame</span>(<span class="op">:</span>SNP <span class="op">=&gt;</span> <span class="fu">names</span>(dg), <span class="op">:</span>pvalue <span class="op">=&gt;</span> pval)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sort!</span>(dp, <span class="op">:</span>pvalue)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">

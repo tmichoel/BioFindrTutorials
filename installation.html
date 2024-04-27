@@ -223,7 +223,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#install-quarto-optional" id="toc-install-quarto-optional" class="nav-link" data-scroll-target="#install-quarto-optional">Install Quarto (optional)</a></li>
   <li><a href="#install-the-julia-extension-for-your-favourite-editoride-optional" id="toc-install-the-julia-extension-for-your-favourite-editoride-optional" class="nav-link" data-scroll-target="#install-the-julia-extension-for-your-favourite-editoride-optional">Install the Julia extension for your favourite editor/IDE (optional)</a></li>
   <li><a href="#install-ijulia" id="toc-install-ijulia" class="nav-link" data-scroll-target="#install-ijulia">Install IJulia</a></li>
-  <li><a href="#install-biofindr.jl" id="toc-install-biofindr.jl" class="nav-link" data-scroll-target="#install-biofindr.jl">Install BioFindr.jl</a></li>
+  <li><a href="#install-biofindr" id="toc-install-biofindr" class="nav-link" data-scroll-target="#install-biofindr">Install BioFindr</a></li>
   <li><a href="#install-the-biofindrtutorials-repository" id="toc-install-the-biofindrtutorials-repository" class="nav-link" data-scroll-target="#install-the-biofindrtutorials-repository">Install the BioFindrTutorials repository</a></li>
   <li><a href="#download-and-preprocess-data" id="toc-download-and-preprocess-data" class="nav-link" data-scroll-target="#download-and-preprocess-data">Download and preprocess data</a>
   <ul class="collapse">
@@ -263,19 +263,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="install-the-julia-extension-for-your-favourite-editoride-optional" class="level2">
 <h2 class="anchored" data-anchor-id="install-the-julia-extension-for-your-favourite-editoride-optional">Install the Julia extension for your favourite editor/IDE (optional)</h2>
-<p>Extensions or plugings for <a href="https://www.julia-vscode.org/">VS Code</a>, <a href="https://github.com/JuliaEditorSupport/julia-emacs">Emacs</a>, and <a href="https://github.com/JuliaEditorSupport/julia-vim">VIM</a> are linked from the <a href="https://julialang.org/">Julia homepage</a></p>
+<p>Extensions or plugins for <a href="https://www.julia-vscode.org/">VS Code</a>, <a href="https://github.com/JuliaEditorSupport/julia-emacs">Emacs</a>, and <a href="https://github.com/JuliaEditorSupport/julia-vim">VIM</a> are linked from the <a href="https://julialang.org/">Julia homepage</a></p>
 </section>
 <section id="install-ijulia" class="level2">
 <h2 class="anchored" data-anchor-id="install-ijulia">Install IJulia</h2>
 <p>To run the tutorial notebooks, you need <a href="https://github.com/JuliaLang/IJulia.jl">IJulia</a>. If you installed Quarto, follow <a href="https://quarto.org/docs/computations/julia.html#installation">these instructions</a> to make sure Quarto can use IJulia to render documents with embedded Julia code.</p>
 </section>
-<section id="install-biofindr.jl" class="level2">
-<h2 class="anchored" data-anchor-id="install-biofindr.jl">Install BioFindr.jl</h2>
-<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr.jl</a> is not yet a <a href="https://github.com/JuliaRegistries/General">registered package</a>. To install it, follow the <a href="https://pkgdocs.julialang.org/v1/managing-packages/#Adding-unregistered-packages">instructions for adding unregistered packages</a>. If you’re new to using <a href="https://pkgdocs.julialang.org/v1/">Pkg</a>, Julia’s package manager, see the <a href="https://pkgdocs.julialang.org/v1/getting-started/">Getting Started</a> notes.</p>
-<p>Open a Julia console and enter the Pkg REPL by pressing <code>]</code> from the Julia REPL. Then:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pkg<span class="op">&gt;</span> add https<span class="op">://</span>github.com<span class="op">/</span>tmichoel<span class="op">/</span>BioFindr.jl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>or if you want to use the SSH-based <code>git</code> protocol:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pkg<span class="op">&gt;</span> add <span class="st">"git@github.com:tmichoel/BioFindr.jl.git"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="install-biofindr" class="level2">
+<h2 class="anchored" data-anchor-id="install-biofindr">Install BioFindr</h2>
+<p><a href="https://github.com/tmichoel/BioFindr.jl">BioFindr</a> is a <a href="https://github.com/JuliaRegistries/General">registered Julia package</a>. To install it, open a Julia console and enter the Pkg REPL by pressing <code>]</code> from the Julia REPL. Then:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pkg<span class="op">&gt;</span> add BioFindr</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>See the <a href="https://pkgdocs.julialang.org/v1/managing-packages/#Adding-packages">Pkg documentation</a> for more information. If you’re new to using <a href="https://pkgdocs.julialang.org/v1/">Pkg</a>, Julia’s package manager, see the <a href="https://pkgdocs.julialang.org/v1/getting-started/">Getting Started</a> notes.</p>
 </section>
 <section id="install-the-biofindrtutorials-repository" class="level2">
 <h2 class="anchored" data-anchor-id="install-the-biofindrtutorials-repository">Install the BioFindrTutorials repository</h2>
@@ -285,8 +283,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </blockquote>
 <p>To (locally) reproduce this project, do the following:</p>
 <ol type="1">
-<li><p>Download this code base. Notice that raw data are not included in the git-history and need to be downloaded independently (see below).</p></li>
-<li><p>Open a Julia console and do:</p>
+<li><p>Download this code base. Notice that raw data are not in</p>
 <pre><code>julia&gt; using Pkg
 julia&gt; Pkg.add("DrWatson") # install globally, for using `quickactivate`
 julia&gt; Pkg.activate("path/to/this/project")
@@ -294,8 +291,8 @@ julia&gt; Pkg.instantiate()</code></pre></li>
 </ol>
 <p>This will install all necessary packages for you to be able to run the scripts and everything should work out of the box, including correctly finding local paths.</p>
 <p>You may notice that most scripts start with the commands:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@quickactivate</span> <span class="st">"BioFindrTutorials"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@quickactivate</span> <span class="st">"BioFindrTutorials"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>which auto-activate the project and enable local path handling from DrWatson.</p>
 </section>
 <section id="download-and-preprocess-data" class="level2">
