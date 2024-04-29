@@ -17,11 +17,12 @@ website:
       - href: index.qmd
         text: Home
       - installation.qmd
-      - section: "First steps"
+      - section: "Basic usage"
         contents:
           - coexpression.qmd
           - association.qmd
           - causal-inference.qmd
+          - dag.qmd
       - section: "Advanced topics"
         contents: 
           - internal-functions-1.qmd
