@@ -3,7 +3,7 @@ title: "Association analysis"
 format:
   html:
     code-fold: false
-jupyter: julia-1.10
+jupyter: julia-1.12
 execute: 
   cache: true
   keep-ipynb: true
