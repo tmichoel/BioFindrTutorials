@@ -84,7 +84,7 @@ llr2 = zeros(size(G,2))
 pval = zeros(size(G,2))
 for i in axes(G,2)
   ng = length(unique(G[:,i]))
-  llr2[i] = BioFindr.realLLR_col(Yg, G[:,i])[1]
+  llr2[i] = BioFindr.real_llr_col(Yg, G[:,i])[1]
   pval[i] = BioFindr.nullpval(llr2[i] , ns, ng, :link);
 end
 ```

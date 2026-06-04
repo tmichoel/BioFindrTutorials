@@ -88,13 +88,13 @@ Throughout the package, the [likelihood ratio tests](https://tmichoel.github.io/
 Since [all log-likelihood ratios are computed from the same summary statistics](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#Implementation), a single function computes them all. To compute the log-likelihood ratios for a specific A-gene (here: hsa-miR-200b-3p with column vector of expression data `Ym`) with a causal instrument (best eQTL) with genotype vector `E`, run:
 
 ```{julia}
-llr2, llr3, llr4, llr5 = BioFindr.realLLR_col(Yt, Ym, E);
+llr2, llr3, llr4, llr5 = BioFindr.real_llr_col(Yt, Ym, E);
 ```
 
 If you know you're only going to use one of them, you can also run:
 
 ```{julia}
-_ , _ , llr4 , _ = BioFindr.realLLR_col(Yt, Ym, E);
+_ , _ , llr4 , _ = BioFindr.real_llr_col(Yt, Ym, E);
 ```
 
 ### Compute posterior probabilities
@@ -131,7 +131,7 @@ The `prior` of the null component is the [estimated proportion of truly null fea
 
 We can verify that both methods (moments and KDE) give similar posterior probabilities
 
-```julia
+```{julia}
 scatter(pp_mom,pp_kde, markersize=4)
 ```
 

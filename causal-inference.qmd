@@ -69,7 +69,7 @@ dpm = DataFrame(SNP_ID = names(dgm), GENE_ID=names(dm)[1:ncol(dgm)]);
 In the most common scenario, we have a dataset of gene expression values, with significant cis-eQTL instruments for a subset of genes ("eGenes"). We can then infer causal interactions from the eGenes to all other genes (including other eGenes). For instance, to infer causal microRNA $\to$ microRNA interaction, run:
 
 ```{julia}
-dP = findr(dm, dgm, dpm; FDR=0.25)
+dP = findr(dm, dgm, dpm; FDR=0.25, method="kde")
 ```
 
 BioFindr computes a [posterior probability](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/) of a non-zero causal interaction for every pair pf **Source** and **Target** genes (columns of `dm`). The possible **Source** genes are the eGenes, the subset of genes with cis-eQTLs (columns of `dgm`), as defined by the eQTL-to-gene mapping in `dpm`.
@@ -88,13 +88,13 @@ If your eQTL mapping DataFrame has the relevant columns in a different place, yo
 
 
 ```{julia}
-dP = findr(dm, dgm, dpm; colX=2, colG=1, FDR=0.1);
+dP = findr(dm, dgm, dpm; colX=2, colG=1, FDR=0.1, method="kde");
 ```
 
 or
 
 ```{julia}
-dP = findr(dm, dgm, dpm; colX="GENE_ID", colG="SNP_ID", FDR=0.1);
+dP = findr(dm, dgm, dpm; colX="GENE_ID", colG="SNP_ID", FDR=0.1, method="kde");
 ```
 
 Any other columns in the eQTL mapping DataFrame (such as association summary statistics) are ignored.
