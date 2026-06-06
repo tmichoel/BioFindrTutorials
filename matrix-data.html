@@ -2,13 +2,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.450">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>BioFindr Tutorials - Matrix-based data</title>
+<title>Matrix-based data – BioFindr Tutorials</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -21,6 +24,7 @@ ul.task-list li input[type="checkbox"] {
   vertical-align: middle;
 }
 /* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -64,22 +68,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-83d6731c42c83706f5616676628995c1.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
   "panel-placement": "end",
   "type": "overlay",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -88,43 +99,71 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="nav-sidebar docked nav-fixed">
+<body class="nav-sidebar docked nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg navbar-dark ">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
-      <div class="navbar-brand-container">
+      <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">BioFindr Tutorials</span>
     </a>
   </div>
-        <div class="quarto-navbar-tools ms-auto">
+        <div class="quarto-navbar-tools tools-end">
 </div>
           <div id="quarto-search" class="" title="Search"></div>
       </div> <!-- /container-fluid -->
     </nav>
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./internal-functions-1.html">Advanced topics</a></li><li class="breadcrumb-item"><a href="./matrix-data.html">Matrix-based data</a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
-      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./internal-functions-1.html">Advanced topics</a></li><li class="breadcrumb-item"><a href="./matrix-data.html">Matrix-based data</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
     </div>
@@ -133,7 +172,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation docked overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
         <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
         <div id="quarto-search" class="" title="Search"></div>
@@ -155,9 +194,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
  <span class="menu-text">Basic usage</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -190,9 +229,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
  <span class="menu-text">Advanced topics</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -220,7 +259,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -242,7 +281,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./internal-functions-1.html">Advanced topics</a></li><li class="breadcrumb-item"><a href="./matrix-data.html">Matrix-based data</a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title">Matrix-based data</h1>
 </div>
@@ -257,7 +296,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
   
 
+
 </header>
+
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
@@ -265,71 +306,63 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="set-up-the-environment" class="level2">
 <h2 class="anchored" data-anchor-id="set-up-the-environment">Set up the environment</h2>
-<div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quickactivate</span>(<span class="pp">@__DIR__</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DataFrames</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Arrow</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BioFindr</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="2" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DrWatson</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DataFrames</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Arrow</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BioFindr</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="load-data" class="level2">
 <h2 class="anchored" data-anchor-id="load-data">Load data</h2>
 <p>Let’s pretend our GEUVADIS data is in a matrix-based format:</p>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Xt <span class="op">=</span> <span class="fu">Matrix</span>(<span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dt.arrow"</span>))));</span>
+<div id="4" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Xt <span class="op">=</span> <span class="fu">Matrix</span>(<span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dt.arrow"</span>))));</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Xm <span class="op">=</span> <span class="fu">Matrix</span>(<span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dm.arrow"</span>))));</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>Gm <span class="op">=</span> <span class="fu">Matrix</span>(<span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgm.arrow"</span>))));</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>Gm <span class="op">=</span> <span class="fu">Matrix</span>(<span class="fu">DataFrame</span>(Arrow.<span class="fu">Table</span>(<span class="fu">datadir</span>(<span class="st">"exp_pro"</span>,<span class="st">"findr-data-geuvadis"</span>, <span class="st">"dgm.arrow"</span>))));</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We also need the microRNA eQTL mapping (see the <a href="./causal-inference.html">causal inference tutorial</a>), in this case in the form of an array where each row corresponds to a cis-eQTL/eGene pair represented by of a column index of <code>Gm</code> (i.e.&nbsp;a SNP) and a column index of <code>Xm</code> (i.e.&nbsp;a microRNA). <a href="./causal-inference.html">Recall</a> that due to the preprocessing of the <a href="https://github.com/lingfeiwang/findr-data-geuvadis">findr-geuvadis</a> data. the column indices are identical, but this will not be the case in general:</p>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>mirpairs <span class="op">=</span> <span class="fu">zeros</span>(<span class="dt">Int32</span>,<span class="fu">size</span>(Gm,<span class="fl">2</span>),<span class="fl">2</span>);</span>
+<div id="6" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>mirpairs <span class="op">=</span> <span class="fu">zeros</span>(<span class="dt">Int32</span>,<span class="fu">size</span>(Gm,<span class="fl">2</span>),<span class="fl">2</span>);</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(mirpairs,<span class="fl">1</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    mirpairs[k,<span class="op">:</span>] <span class="op">=</span> [k k]</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Note that data must be stored in matrices where <strong>columns correspond to variables</strong> (genes, SNPs, etc.) and <strong>rows correspond to observations</strong> (samples).</p>
 </section>
 <section id="run-biofindr" class="level2">
 <h2 class="anchored" data-anchor-id="run-biofindr">Run BioFindr</h2>
-<p>Below, we only show the relevant <code>findr</code> commands. Check the corresponding tutorials and <a href="https://tmichoel.github.io/BioFindr.jl/dev/">BioFindr documentation</a> for more details.</p>
+<p>Below, we only show the relevant <code>findr_matrix</code> commands. Check the corresponding tutorials and <a href="https://tmichoel.github.io/BioFindr.jl/dev/">BioFindr documentation</a> for more details.</p>
 <section id="coexpression-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="coexpression-analysis">Coexpression analysis</h3>
 <section id="all-vs-all" class="level4">
 <h4 class="anchored" data-anchor-id="all-vs-all">All-vs-all</h4>
 <p>Coexpression analysis on a single matrix returns a square matrix with dimensions equal to the number of variables (columns) in the input matrix:</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
+<div id="8" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> BioFindr.<span class="fu">findr_matrix</span>(Xm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>674×674 Matrix{Float64}:
- 1.0        0.0453818   0.225592   …  0.0332217  0.107904   0.105772
- 0.0889502  1.0         0.102236      0.0474569  0.731827   0.248213
- 0.1729     0.0403721   1.0           0.777618   0.106922   0.1002
- 0.0159859  0.106602    0.0893431     0.0699576  0.098629   0.122935
- 0.120573   0.112145    0.238959      0.0346163  0.164631   0.297973
- 0.0624062  0.0586858   0.0694624  …  0.569015   0.104281   0.186142
- 0.423979   0.0332279   0.0971337     0.0435612  0.124816   0.094099
- 0.0533054  0.0266426   0.559493      0.0550043  0.34664    0.0981003
- 0.114737   0.0143626   0.1419        0.0439354  0.192045   0.131555
- 0.176766   0.48804     1.0           0.0337898  0.213006   0.133968
- 0.360143   0.153889    0.425408   …  0.0332874  0.163973   0.187538
- 0.182787   0.0493317   0.0386118     0.0538748  0.105971   0.160988
- 0.676394   0.0264916   0.444864      0.11139    0.281354   0.0970358
- ⋮                                 ⋱                        
- 0.0763606  0.0436318   0.868105      0.0379098  0.0992675  0.157452
- 0.190505   0.137327    0.113494      0.0334964  0.379698   0.516604
- 0.378913   0.00636714  0.969245      0.0333967  0.218768   0.0972078
- 0.0925918  0.00949055  0.11976    …  0.044673   0.111653   0.0953303
- 0.1283     0.0292623   0.789323      0.0366376  0.190591   0.0937124
- 0.115916   0.0566189   0.0567839     0.0330524  0.243382   0.123887
- 0.0371264  0.0516759   0.177314      0.0620753  0.111248   0.817595
- 0.286305   0.132744    0.106446      0.0361477  0.112938   0.152742
- 0.162885   0.178503    0.105606   …  0.999703   0.116572   0.0951264
- 0.0429484  0.123023    0.905047      1.0        0.122408   0.912701
- 0.0920713  0.715456    0.108091      0.0425472  1.0        1.0
- 0.0982375  0.312023    0.0995635     0.7971     1.0        1.0</code></pre>
+ 1.0        0.00916858  0.194      …  0.0        0.165272  0.122761
+ 0.0        1.0         0.0495855     0.124753   0.719807  0.432116
+ 0.212284   0.00916858  1.0           0.911956   0.165272  0.0422307
+ 0.0        0.00996431  0.0495855     0.246726   0.0       0.224656
+ 0.102238   0.0123471   0.201251      0.0        0.348725  0.517057
+ 0.0        0.00916858  0.0        …  0.83239    0.139247  0.31329
+ 0.447964   0.00916858  0.0495855     0.073816   0.204236  0.0
+ 0.0        0.00916858  0.599763      0.183703   0.487751  0.0422307
+ 0.0625764  0.0         0.125998      0.0795851  0.37967   0.238788
+ 0.212284   0.505946    1.0           0.0        0.394718  0.241892
+ ⋮                                 ⋱                       
+ 0.0        0.0         0.0655191  …  0.090374   0.165272  0.0172629
+ 0.145406   0.00916858  0.826973      0.0        0.378483  0.0
+ 0.0709575  0.00916858  0.0           0.0        0.41458   0.226578
+ 0.0        0.00916858  0.171388      0.217528   0.165272  0.887061
+ 0.269168   0.0355088   0.0495855     0.0        0.165307  0.263638
+ 0.212284   0.134236    0.0495855  …  0.99952    0.170009  0.0172629
+ 0.0        0.021868    0.919732      1.0        0.192011  0.933795
+ 0.0        0.737424    0.0495855     0.0571724  1.0       1.0
+ 0.0        0.343804    0.0495855     0.918666   1.0       1.0</code></pre>
 </div>
 </div>
 <p>In the output, columns correspond to A-genes (causal factors) and rows to B-genes (targets), that is:</p>
@@ -341,69 +374,57 @@ P_{i,j} = P(X_j \to X_i)
 <section id="bipartite" class="level4">
 <h4 class="anchored" data-anchor-id="bipartite">Bipartite</h4>
 <p>Analyse coexpression <em>from</em> a subset of variables <em>to</em> the whole set:</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xm; cols<span class="op">=</span>[<span class="fl">1</span>,<span class="fl">3</span>,<span class="fl">7</span>,<span class="fl">50</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
+<div id="10" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> BioFindr.<span class="fu">findr_matrix</span>(Xm; cols<span class="op">=</span>[<span class="fl">1</span>,<span class="fl">3</span>,<span class="fl">7</span>,<span class="fl">50</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>674×4 Matrix{Float64}:
- 1.0        0.225592   0.346674   0.245078
- 0.0889502  0.102236   0.113262   0.162557
- 0.1729     1.0        0.11442    0.073312
- 0.0159859  0.0893431  0.146108   0.473624
- 0.120573   0.238959   0.239501   0.0620736
- 0.0624062  0.0694624  0.0989481  0.0511453
- 0.423979   0.0971337  1.0        0.203824
- 0.0533054  0.559493   0.201162   0.124401
- 0.114737   0.1419     0.0934371  0.23661
- 0.176766   1.0        0.133559   0.116917
- 0.360143   0.425408   0.114545   0.288854
- 0.182787   0.0386118  0.123711   0.146996
- 0.676394   0.444864   0.135674   0.260814
- ⋮                                
- 0.0763606  0.868105   0.265134   0.513929
- 0.190505   0.113494   0.260401   0.114172
- 0.378913   0.969245   0.213968   0.130775
- 0.0925918  0.11976    0.197852   0.32143
- 0.1283     0.789323   0.132733   0.283125
- 0.115916   0.0567839  0.513517   0.239496
- 0.0371264  0.177314   0.140021   0.298428
- 0.286305   0.106446   0.158433   0.39212
- 0.162885   0.105606   0.104283   0.347775
- 0.0429484  0.905047   0.139504   0.0675872
- 0.0920713  0.108091   0.139412   0.0202383
- 0.0982375  0.0995635  0.0917764  0.375652</code></pre>
+ 1.0        0.194      0.441332  0.262614
+ 0.0        0.0495855  0.0       0.178136
+ 0.212284   1.0        0.0       0.0
+ 0.0        0.0495855  0.104343  0.442647
+ 0.102238   0.201251   0.292016  0.0
+ 0.0        0.0        0.0       0.0
+ 0.447964   0.0495855  1.0       0.237812
+ 0.0        0.599763   0.209111  0.0763643
+ 0.0625764  0.125998   0.0       0.259251
+ 0.212284   1.0        0.104343  0.042861
+ ⋮                               
+ 0.0        0.0655191  0.20045   0.292107
+ 0.145406   0.826973   0.104343  0.27498
+ 0.0709575  0.0        0.606292  0.26046
+ 0.0        0.171388   0.104343  0.280788
+ 0.269168   0.0495855  0.104543  0.349376
+ 0.212284   0.0495855  0.0       0.309615
+ 0.0        0.919732   0.104343  0.0
+ 0.0        0.0495855  0.104343  0.0
+ 0.0        0.0495855  0.0       0.333281</code></pre>
 </div>
 </div>
 <p>Analyse coexpression <em>from</em> the variables in <code>Xm</code> <em>to</em> the variables in <code>Xt</code>:</p>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xt,Xm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<pre><code>23722×674 Matrix{Float64}:
- 0.0234184  0.00291162  0.732244     …  0.156543    0.0361393  0.0764542
- 0.0221085  0.00435185  0.472921        0.306938    0.0698138  0.125194
- 0.0241246  0.00209359  0.351981        0.0358197   0.0646466  0.0804391
- 0.532158   0.00245132  0.616879        0.00249436  0.0958314  0.0656744
- 0.0222376  0.00256429  0.0337209       0.0317953   0.0874541  0.691511
- 0.0311296  0.00405144  0.282852     …  0.0512983   0.0662781  0.841356
- 0.0212987  0.00689882  0.300301        0.226043    0.0351949  0.1855
- 0.0590008  0.00292483  0.146968        0.0127612   0.0549558  0.0626004
- 0.0217252  0.00209742  0.276152        0.237079    0.0438237  0.361715
- 0.0226942  0.00344102  0.00199485      0.0140767   0.0350283  0.267969
- 0.0213827  0.00532704  0.455821     …  0.197865    0.0368173  0.0158116
- 0.0343095  0.00236632  0.534035        0.429556    0.0311012  0.0787474
- 0.0214705  0.00207517  0.520825        0.239688    0.609959   0.99285
- ⋮                                   ⋱                         
- 0.063287   0.0026124   0.955061     …  0.983501    0.103916   0.353626
- 0.0230399  0.0200878   0.14564         0.00081434  0.0299894  0.152551
- 0.0244435  0.00362406  0.230516        0.679986    0.0488017  0.452377
- 0.0439679  0.00265316  0.0162124       0.113298    0.0386101  0.0763466
- 0.0481255  0.0152828   0.10255         0.227967    0.069969   0.323395
- 0.0219638  0.0025475   0.129958     …  0.797988    0.0437969  0.235947
- 0.0359421  0.00217451  0.0695795       0.0309512   0.0536083  0.0518225
- 0.0228804  0.00371468  0.122758        0.404031    0.0544299  0.175212
- 0.0214806  0.00207504  0.000637106     0.266088    0.0540143  0.153354
- 0.0225533  0.00213282  0.0144905       0.0383339   0.0452756  0.0636567
- 0.0285356  0.00291061  0.0484913    …  0.044657    0.0463433  0.235425
- 0.0628126  0.0021249   0.0326125       0.00878032  0.117111   0.42914</code></pre>
+<div id="12" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> BioFindr.<span class="fu">findr_matrix</span>(Xt,Xm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>19947×674 Matrix{Float64}:
+ 0.0         0.0         0.763883   …  0.165354    0.0         0.0850426
+ 0.0         0.0365591   0.514881      0.349249    0.0549157   0.137567
+ 0.0         0.0         0.373846      0.00822578  0.0368741   0.0928394
+ 0.0         0.0         0.0253258     0.00822578  0.10996     0.732424
+ 0.0428338   0.0357019   0.294593      0.0314992   0.042672    0.8585
+ 0.0         0.0416541   0.314365   …  0.253437    0.0         0.199877
+ 0.125543    0.0         0.147785      0.0         0.0215345   0.0662608
+ 0.0         0.0         0.287048      0.265984    0.0         0.403602
+ 0.0         0.00942808  0.0           0.0         0.0         0.274867
+ 0.0         0.0365591   0.495411      0.217839    0.0         0.00412467
+ ⋮                                  ⋱                          
+ 0.0480295   0.0         0.426729      0.0960691   0.0279688   0.0
+ 0.0         0.0         0.766588      0.333224    0.048296    0.12974
+ 0.00484254  0.0361967   0.338391   …  0.148547    0.171054    0.100227
+ 0.0437642   0.0         0.449278      0.0         0.0         0.799782
+ 0.0         0.0         0.279282      0.100556    0.0         0.100099
+ 0.0480295   0.0         0.0           0.0         0.256236    0.721347
+ 0.0504915   0.0         0.0644403     0.0         0.0242091   0.360761
+ 0.118496    0.0         0.0276156  …  0.606041    0.00689225  0.152281
+ 0.0480295   0.0         0.0           0.030476    0.111428    0.550259</code></pre>
 </div>
 </div>
 </section>
@@ -411,36 +432,30 @@ P_{i,j} = P(X_j \to X_i)
 <section id="association-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="association-analysis">Association analysis</h3>
 <p>Testing associations between eQTL genotypes in <code>Gm</code>and microRNA expression levels in <code>Xm</code>:</p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xm,Gm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
+<div id="14" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> BioFindr.<span class="fu">findr_matrix</span>(Xm,Gm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>674×55 Matrix{Float64}:
- 0.99709    0.336726  0.0       0.0  …  0.000455842  0.0  0.00194948
- 0.076501   0.999976  0.0       0.0     0.000743437  0.0  0.00511882
- 0.0534877  0.199234  1.0       0.0     0.000448411  0.0  0.00836276
- 0.0231871  0.441697  0.0       1.0     0.000418771  0.0  0.00229785
- 0.0359331  0.418019  0.0       0.0     0.000657638  0.0  0.00169117
- 0.0434282  0.35389   0.0       0.0  …  0.00166157   0.0  0.00197825
- 0.0243615  0.370613  0.0       0.0     0.000723086  0.0  1.0
- 0.0244173  0.314934  0.0       0.0     0.00219063   0.0  0.0108873
- 0.0357465  0.209157  0.0       0.0     0.00064661   0.0  0.00470863
- 0.110227   0.376232  0.999825  0.0     0.00167592   0.0  0.00316303
- 0.0281279  0.415582  0.0       0.0  …  0.000939568  0.0  0.00779912
- 0.027045   0.274934  0.0       0.0     0.00101715   0.0  0.00163995
- 0.0603348  0.366114  0.0       0.0     0.000360567  0.0  0.00454491
- ⋮                                   ⋱                    
- 0.0374556  0.322883  0.0       0.0     0.000363842  0.0  0.00862389
- 0.02492    0.227238  0.0       0.0     0.000602233  0.0  0.00375107
- 0.0311861  0.219238  0.0       0.0     0.00039574   0.0  0.00327624
- 0.0795592  0.231186  0.0       0.0  …  0.00140163   0.0  0.00415341
- 0.046263   0.215004  0.0       0.0     0.000416495  0.0  0.00505554
- 0.0303016  0.539201  0.0       0.0     0.008878     0.0  0.00257078
- 0.0548847  0.546104  0.0       0.0     0.000603634  0.0  0.00463545
- 0.0267455  0.511972  0.0       0.0     0.000423386  0.0  0.00158495
- 0.0463963  0.557115  0.0       0.0  …  0.00110603   0.0  0.00157338
- 0.105566   0.235344  0.0       0.0     0.00102074   0.0  0.00651383
- 0.0220181  0.219283  0.0       0.0     0.000538151  0.0  0.00476893
- 0.0307281  0.270128  0.0       0.0     0.000459762  0.0  0.0735222</code></pre>
+ 0.985145   0.3613     0.0  0.0  0.0  0.0  …  0.0        0.0  0.0  0.0
+ 0.162536   1.0        0.0  0.0  0.0  0.0     0.425227   0.0  0.0  0.0
+ 0.0666629  0.0        0.0  0.0  0.0  0.0     0.140544   0.0  0.0  0.0
+ 0.0        0.521178   0.0  0.0  0.0  0.0     0.0121992  0.0  0.0  0.0
+ 0.0        0.500366   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0
+ 0.0        0.406308   0.0  0.0  0.0  0.0  …  0.0        0.0  0.0  0.0
+ 0.0        0.440371   0.0  0.0  0.0  0.0     0.0        0.0  0.0  1.0
+ 0.0        0.294349   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0
+ 0.0        0.0833697  0.0  0.0  0.0  0.0     0.198238   0.0  0.0  0.0
+ 0.221126   0.449856   0.0  0.0  0.0  0.0     0.119632   0.0  0.0  0.0
+ ⋮                                    ⋮    ⋱                       
+ 0.171181   0.179901   0.0  0.0  0.0  0.0  …  0.0        0.0  0.0  0.0
+ 0.0191778  0.152283   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0
+ 0.0        0.604519   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0
+ 0.0743061  0.610707   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0
+ 0.0        0.580355   0.0  0.0  0.0  0.0     0.0605735  0.0  0.0  0.0
+ 0.0202112  0.620588   0.0  0.0  0.0  0.0  …  0.0        0.0  0.0  0.0
+ 0.2166     0.179901   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0
+ 0.0        0.170807   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0
+ 0.0        0.207339   0.0  0.0  0.0  0.0     0.0434338  0.0  0.0  0.134986</code></pre>
 </div>
 </div>
 <p>In the output, columns correspond to eQTLs and rows to genes, that is,</p>
@@ -453,19 +468,19 @@ P_{i,j} = P(E_j \to X_i)
 <section id="subset-to-all" class="level4">
 <h4 class="anchored" data-anchor-id="subset-to-all">Subset-to-all</h4>
 <p>When you run causal inference with <code>findr</code> using matrix-based inputs, the default is to return posterior probabilities for <a href="https://tmichoel.github.io/BioFindr.jl/dev/realLLR/">each test</a> separately:</p>
-<div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xm,Gm,mirpairs);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="16" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> BioFindr.<span class="fu">findr_matrix</span>(Xm,Gm,mirpairs);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Note the dimensions of <code>P</code>:</p>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">size</span>(P)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
+<div id="18" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">size</span>(P)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>(674, 4, 55)</code></pre>
 </div>
 </div>
 <p>The third dimension indexes the A-genes (causes), the second dimension the tests (test 2-5, see link above), and the first the B-genes (targets). If you are interested only in a specific combination, use the optional <code>combination</code> argument as explained in the <a href="./causal-inference.html">causal inference tutorial</a>:</p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">findr</span>(Xm,Gm,mirpairs; combination<span class="op">=</span><span class="st">"IV"</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="20" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> BioFindr.<span class="fu">findr_matrix</span>(Xm,Gm,mirpairs; combination<span class="op">=</span><span class="st">"IV"</span>);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 
@@ -475,43 +490,58 @@ P_{i,j} = P(E_j \to X_i)
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
-window.document.addEventListener("DOMContentLoaded", function (event) {
-  const toggleBodyColorMode = (bsSheetEl) => {
-    const mode = bsSheetEl.getAttribute("data-mode");
-    const bodyEl = window.document.querySelector("body");
-    if (mode === "dark") {
-      bodyEl.classList.add("quarto-dark");
-      bodyEl.classList.remove("quarto-light");
-    } else {
-      bodyEl.classList.add("quarto-light");
-      bodyEl.classList.remove("quarto-dark");
-    }
-  }
-  const toggleBodyColorPrimary = () => {
-    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
-    if (bsSheetEl) {
-      toggleBodyColorMode(bsSheetEl);
-    }
-  }
-  toggleBodyColorPrimary();  
-  const icon = "";
-  const anchorJS = new window.AnchorJS();
-  anchorJS.options = {
-    placement: 'right',
-    icon: icon
-  };
-  anchorJS.add('.anchored');
-  const isCodeAnnotation = (el) => {
-    for (const clz of el.classList) {
-      if (clz.startsWith('code-annotation-')) {                     
-        return true;
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
       }
+      return false;
     }
-    return false;
-  }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
       for (const childEl of codeEl.children) {
         if (isCodeAnnotation(childEl)) {
           childEl.remove();
@@ -519,195 +549,348 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       }
       return codeEl.innerText;
     }
-  });
-  clipboard.on('success', function(e) {
-    // button target
-    const button = e.trigger;
-    // don't keep focus
-    button.blur();
-    // flash "checked"
-    button.classList.add('code-copy-button-checked');
-    var currentTitle = button.getAttribute("title");
-    button.setAttribute("title", "Copied!");
-    let tooltip;
-    if (window.bootstrap) {
-      button.setAttribute("data-bs-toggle", "tooltip");
-      button.setAttribute("data-bs-placement", "left");
-      button.setAttribute("data-bs-title", "Copied!");
-      tooltip = new bootstrap.Tooltip(button, 
-        { trigger: "manual", 
-          customClass: "code-copy-button-tooltip",
-          offset: [0, -8]});
-      tooltip.show();    
-    }
-    setTimeout(function() {
-      if (tooltip) {
-        tooltip.hide();
-        button.removeAttribute("data-bs-title");
-        button.removeAttribute("data-bs-toggle");
-        button.removeAttribute("data-bs-placement");
-      }
-      button.setAttribute("title", currentTitle);
-      button.classList.remove('code-copy-button-checked');
-    }, 1000);
-    // clear code selection
-    e.clearSelection();
-  });
-  function tippyHover(el, contentFn) {
-    const config = {
-      allowHTML: true,
-      content: contentFn,
-      maxWidth: 500,
-      delay: 100,
-      arrow: false,
-      appendTo: function(el) {
-          return el.parentElement;
-      },
-      interactive: true,
-      interactiveBorder: 10,
-      theme: 'quarto',
-      placement: 'bottom-start'
-    };
-    window.tippy(el, config); 
-  }
-  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
-  for (var i=0; i<noterefs.length; i++) {
-    const ref = noterefs[i];
-    tippyHover(ref, function() {
-      // use id or data attribute instead here
-      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
-      try { href = new URL(href).hash; } catch {}
-      const id = href.replace(/^#\/?/, "");
-      const note = window.document.getElementById(id);
-      return note.innerHTML;
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
     });
-  }
-      let selectedAnnoteEl;
-      const selectorForAnnotation = ( cell, annotation) => {
-        let cellAttr = 'data-code-cell="' + cell + '"';
-        let lineAttr = 'data-code-annotation="' +  annotation + '"';
-        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
-        return selector;
-      }
-      const selectCodeLines = (annoteEl) => {
-        const doc = window.document;
-        const targetCell = annoteEl.getAttribute("data-target-cell");
-        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
-        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
-        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
-        const lineIds = lines.map((line) => {
-          return targetCell + "-" + line;
-        })
-        let top = null;
-        let height = null;
-        let parent = null;
-        if (lineIds.length > 0) {
-            //compute the position of the single el (top and bottom and make a div)
-            const el = window.document.getElementById(lineIds[0]);
-            top = el.offsetTop;
-            height = el.offsetHeight;
-            parent = el.parentElement.parentElement;
-          if (lineIds.length > 1) {
-            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
-            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
-            height = bottom - top;
-          }
-          if (top !== null && height !== null && parent !== null) {
-            // cook up a div (if necessary) and position it 
-            let div = window.document.getElementById("code-annotation-line-highlight");
-            if (div === null) {
-              div = window.document.createElement("div");
-              div.setAttribute("id", "code-annotation-line-highlight");
-              div.style.position = 'absolute';
-              parent.appendChild(div);
-            }
-            div.style.top = top - 2 + "px";
-            div.style.height = height + 4 + "px";
-            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
-            if (gutterDiv === null) {
-              gutterDiv = window.document.createElement("div");
-              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
-              gutterDiv.style.position = 'absolute';
-              const codeCell = window.document.getElementById(targetCell);
-              const gutter = codeCell.querySelector('.code-annotation-gutter');
-              gutter.appendChild(gutterDiv);
-            }
-            gutterDiv.style.top = top - 2 + "px";
-            gutterDiv.style.height = height + 4 + "px";
-          }
-          selectedAnnoteEl = annoteEl;
-        }
-      };
-      const unselectCodeLines = () => {
-        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
-        elementsIds.forEach((elId) => {
-          const div = window.document.getElementById(elId);
-          if (div) {
-            div.remove();
-          }
-        });
-        selectedAnnoteEl = undefined;
-      };
-      // Attach click handler to the DT
-      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
-      for (const annoteDlNode of annoteDls) {
-        annoteDlNode.addEventListener('click', (event) => {
-          const clickedEl = event.target;
-          if (clickedEl !== selectedAnnoteEl) {
-            unselectCodeLines();
-            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
-            if (activeEl) {
-              activeEl.classList.remove('code-annotation-active');
-            }
-            selectCodeLines(clickedEl);
-            clickedEl.classList.add('code-annotation-active');
-          } else {
-            // Unselect the line
-            unselectCodeLines();
-            clickedEl.classList.remove('code-annotation-active');
-          }
-        });
-      }
-  const findCites = (el) => {
-    const parentEl = el.parentElement;
-    if (parentEl) {
-      const cites = parentEl.dataset.cites;
-      if (cites) {
-        return {
-          el,
-          cites: cites.split(' ')
-        };
-      } else {
-        return findCites(el.parentElement)
-      }
-    } else {
-      return undefined;
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
     }
-  };
-  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
-  for (var i=0; i<bibliorefs.length; i++) {
-    const ref = bibliorefs[i];
-    const citeInfo = findCites(ref);
-    if (citeInfo) {
-      tippyHover(citeInfo.el, function() {
-        var popup = window.document.createElement('div');
-        citeInfo.cites.forEach(function(cite) {
-          var citeDiv = window.document.createElement('div');
-          citeDiv.classList.add('hanging-indent');
-          citeDiv.classList.add('csl-entry');
-          var biblioDiv = window.document.getElementById('ref-' + cite);
-          if (biblioDiv) {
-            citeDiv.innerHTML = biblioDiv.innerHTML;
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/tmichoel\.github\.io\/BioFindrTutorials\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
           }
-          popup.appendChild(citeDiv);
-        });
-        return popup.innerHTML;
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
       });
     }
-  }
-});
-</script>
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
 </div> <!-- /content -->
+
 
 
 
