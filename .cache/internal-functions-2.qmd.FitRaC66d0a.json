@@ -1,0 +1,265 @@
+{
+    "cells": [
+        {
+            "id": "1",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "---\n",
+                "title: \"Internal functions 2\"\n",
+                "format:\n",
+                "  html:\n",
+                "    code-fold: false\n",
+                "engine: julia\n",
+                "execute: \n",
+                "  cache: true\n",
+                "  keep-ipynb: true\n",
+                "---\n",
+                "## Introduction\n",
+                "\n",
+                "The only function [exported](https://docs.julialang.org/en/v1/manual/modules/#Export-lists) by [BioFindr][1] is the [`findr`](https://tmichoel.github.io/BioFindr.jl/dev/testLLR/) function itself. Nevertheless, many of the internal functions may be useful when digging deeper in the results for specific genes. The [package documentation][6] contains detailed descriptions of all package functions, intertwined with the methods section of the [original paper][5], and should give a good overview of what is available. \n",
+                "\n",
+                "In this tutorial we consider the situation where you have a single gene of interest and want to compute genetic association statistics for a set of variants of interest (for instance when doing a GWAS analysis for that gene). The approach from the [association analysis tutorial](association.qmd) cannot be followed in this case, because the exported [`findr`](https://tmichoel.github.io/BioFindr.jl/dev/testLLR/) function assumes that many target genes (\"B\" genes) are tested against one or more variants and uses the distribution of likelihood ratios across all target genes for [Bayesian inference of posterior probabilities](https://lab.michoel.info/BioFindr.jl/dev/posteriorprobs/). If only one or a small number of genes are tested, this is no longer possible. Nevertheless it is still possible to compute p-values under the null hypothesis of the [linkage test](https://lab.michoel.info/BioFindr.jl/dev/realLLR/) in this situation.\n",
+                "\n",
+                "## Set up the environment"
+            ]
+        },
+        {
+            "id": "2",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "using DrWatson\n",
+                "using DataFrames\n",
+                "using Arrow\n",
+                "using StatsPlots\n",
+                "using LaTeXStrings\n",
+                "using Distributions\n",
+                "\n",
+                "using BioFindr"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "3",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "## Load data\n",
+                "\n",
+                "You should by now be familiar with the GEUVADIS data used in the *First steps* tutorials. Here we need the following files:"
+            ]
+        },
+        {
+            "id": "4",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dt = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dt.arrow\")));\n",
+                "dg = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dgt.arrow\")));"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "5",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "Set the gene of interest:"
+            ]
+        },
+        {
+            "id": "6",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "gene = names(dt)[10]"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "\"EPDR1\""
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "7",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "## Run the analysis\n",
+                "\n",
+                "### Convert the data\n",
+                "\n",
+                "Internally, all [BioFindr][1] functions use matrix-based inputs and [supernormalized data](https://tmichoel.github.io/BioFindr.jl/dev/inference/). The easiest way to convert our data is to run `supernormalize` on the initial data:"
+            ]
+        },
+        {
+            "id": "8",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "Yg = vec(BioFindr.supernormalize(select(dt,gene)));"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "9",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "For the genotype data, no conversion is needed:"
+            ]
+        },
+        {
+            "id": "10",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "G = Matrix(dg);"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "11",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "We will also need the number of samples:"
+            ]
+        },
+        {
+            "id": "12",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "ns = length(Yg);"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "13",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "### Compute null p-values\n",
+                "\n",
+                "Throughout the package, the [likelihood ratio tests](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/) are labelled by the following [symbols](https://docs.julialang.org/en/v1/manual/metaprogramming/#Symbols)\n",
+                "\n",
+                "- Test 2 (**Linkage test**): `:link`\n",
+                "- Test 3 (**Mediation test**): `:med`\n",
+                "- Test 4 (**Relevance test**): `:relev`\n",
+                "- Test 5 (**Pleiotropy test**): `:pleio`\n",
+                "\n",
+                "For genetic association testing, we only need the **linkage** test.\n",
+                "\n",
+                "Since [all log-likelihood ratios are computed from the same summary statistics](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#Implementation), a single function computes them all. To compute the log-likelihood ratios for a specific A-gene (here: hsa-miR-200b-3p with column vector of expression data `Ym`) with a causal instrument (best eQTL) with genotype vector `E`, run:"
+            ]
+        },
+        {
+            "id": "14",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "llr2 = zeros(size(G,2))\n",
+                "pval = zeros(size(G,2))\n",
+                "for i in axes(G,2)\n",
+                "  ng = length(unique(G[:,i]))\n",
+                "  llr2[i] = BioFindr.real_llr_col(Yg, G[:,i])[1]\n",
+                "  pval[i] = BioFindr.nullpval(llr2[i] , ns, ng, :link);\n",
+                "end"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "15",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "Put the results in a DataFrame together with the SNP IDs, and sort by ascending p-value:"
+            ]
+        },
+        {
+            "id": "16",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dp = DataFrame(:SNP => names(dg), :pvalue => pval)\n",
+                "sort!(dp, :pvalue)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "\u001b[1m3172×2 DataFrame\u001b[0m\n\u001b[1m  Row \u001b[0m│\u001b[1m SNP         \u001b[0m\u001b[1m pvalue      \u001b[0m\n\u001b[1m      \u001b[0m│\u001b[90m String      \u001b[0m\u001b[90m Float64     \u001b[0m\n──────┼──────────────────────────\n    1 │ rs7807193    2.98306e-5\n    2 │ rs115750662  0.000636415\n    3 │ rs2376879    0.00123303\n    4 │ rs13058199   0.00129878\n    5 │ rs6861539    0.00140475\n    6 │ rs2028155    0.0014066\n    7 │ rs115438724  0.0014402\n    8 │ rs145750607  0.00176413\n  ⋮   │      ⋮            ⋮\n 3166 │ rs17681742   0.99839\n 3167 │ rs8058619    0.998416\n 3168 │ rs10865971   0.999105\n 3169 │ rs28461466   0.999673\n 3170 │ rs3752279    0.999824\n 3171 │ rs200405612  0.999906\n 3172 │ rs3786631    1.0\n\u001b[36m                3157 rows omitted\u001b[0m",
+                        "text/html": "<div><div style = \"float: left;\"><span>3172×2 DataFrame</span></div><div style = \"float: right; font-style: italic;\"><span>3147 rows omitted</span></div><div style = \"clear: both;\"></div></div><div class = \"data-frame\" style = \"overflow-x: scroll;\"><table class = \"data-frame\" style = \"margin-bottom: 6px;\"><thead><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\">Row</th><th style = \"text-align: left;\">SNP</th><th style = \"text-align: left;\">pvalue</th></tr><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\"></th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th></tr></thead><tbody><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">1</td><td style = \"text-align: left;\">rs7807193</td><td style = \"text-align: right;\">2.98306e-5</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">2</td><td style = \"text-align: left;\">rs115750662</td><td style = \"text-align: right;\">0.000636415</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3</td><td style = \"text-align: left;\">rs2376879</td><td style = \"text-align: right;\">0.00123303</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">4</td><td style = \"text-align: left;\">rs13058199</td><td style = \"text-align: right;\">0.00129878</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">5</td><td style = \"text-align: left;\">rs6861539</td><td style = \"text-align: right;\">0.00140475</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">6</td><td style = \"text-align: left;\">rs2028155</td><td style = \"text-align: right;\">0.0014066</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">7</td><td style = \"text-align: left;\">rs115438724</td><td style = \"text-align: right;\">0.0014402</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">8</td><td style = \"text-align: left;\">rs145750607</td><td style = \"text-align: right;\">0.00176413</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">9</td><td style = \"text-align: left;\">rs3839026</td><td style = \"text-align: right;\">0.00196504</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">10</td><td style = \"text-align: left;\">rs17313034</td><td style = \"text-align: right;\">0.00205587</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">11</td><td style = \"text-align: left;\">rs11644618</td><td style = \"text-align: right;\">0.00229005</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">12</td><td style = \"text-align: left;\">rs11559147</td><td style = \"text-align: right;\">0.00236656</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">13</td><td style = \"text-align: left;\">rs112102156</td><td style = \"text-align: right;\">0.00278117</td></tr><tr><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3161</td><td style = \"text-align: left;\">rs186302195</td><td style = \"text-align: right;\">0.996988</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3162</td><td style = \"text-align: left;\">rs9804296</td><td style = \"text-align: right;\">0.997249</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3163</td><td style = \"text-align: left;\">rs140756211</td><td style = \"text-align: right;\">0.997352</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3164</td><td style = \"text-align: left;\">rs35398038</td><td style = \"text-align: right;\">0.997976</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3165</td><td style = \"text-align: left;\">rs189127249</td><td style = \"text-align: right;\">0.998379</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3166</td><td style = \"text-align: left;\">rs17681742</td><td style = \"text-align: right;\">0.99839</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3167</td><td style = \"text-align: left;\">rs8058619</td><td style = \"text-align: right;\">0.998416</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3168</td><td style = \"text-align: left;\">rs10865971</td><td style = \"text-align: right;\">0.999105</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3169</td><td style = \"text-align: left;\">rs28461466</td><td style = \"text-align: right;\">0.999673</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3170</td><td style = \"text-align: left;\">rs3752279</td><td style = \"text-align: right;\">0.999824</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3171</td><td style = \"text-align: left;\">rs200405612</td><td style = \"text-align: right;\">0.999906</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3172</td><td style = \"text-align: left;\">rs3786631</td><td style = \"text-align: right;\">1.0</td></tr></tbody></table></div>",
+                        "text/latex": "\\begin{tabular}{r|cc}\n\t& SNP & pvalue\\\\\n\t\\hline\n\t& String & Float64\\\\\n\t\\hline\n\t1 & rs7807193 & 2.98306e-5 \\\\\n\t2 & rs115750662 & 0.000636415 \\\\\n\t3 & rs2376879 & 0.00123303 \\\\\n\t4 & rs13058199 & 0.00129878 \\\\\n\t5 & rs6861539 & 0.00140475 \\\\\n\t6 & rs2028155 & 0.0014066 \\\\\n\t7 & rs115438724 & 0.0014402 \\\\\n\t8 & rs145750607 & 0.00176413 \\\\\n\t9 & rs3839026 & 0.00196504 \\\\\n\t10 & rs17313034 & 0.00205587 \\\\\n\t11 & rs11644618 & 0.00229005 \\\\\n\t12 & rs11559147 & 0.00236656 \\\\\n\t13 & rs112102156 & 0.00278117 \\\\\n\t14 & rs9931261 & 0.00323146 \\\\\n\t15 & rs8109288 & 0.00418607 \\\\\n\t16 & rs912118 & 0.00480808 \\\\\n\t17 & rs7803902 & 0.00586947 \\\\\n\t18 & rs1460249 & 0.00587072 \\\\\n\t19 & rs11131799 & 0.00648379 \\\\\n\t20 & rs204556 & 0.00671245 \\\\\n\t21 & rs532466 & 0.00676988 \\\\\n\t22 & rs2289503 & 0.00682641 \\\\\n\t23 & rs17797853 & 0.00716647 \\\\\n\t24 & rs1651888 & 0.00723477 \\\\\n\t$\\dots$ & $\\dots$ & $\\dots$ \\\\\n\\end{tabular}\n"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "17",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "[1]: https://github.com/tmichoel/BioFindr.jl\n",
+                "[2]: https://github.com/lingfeiwang/findr-data-geuvadis\n",
+                "[3]: https://doi.org/10.1038/nature12531\n",
+                "[4]: https://dataframes.juliadata.org/stable/\n",
+                "[5]: https://doi.org/10.1371/journal.pcbi.1005703\n",
+                "[6]: https://tmichoel.github.io/BioFindr.jl/dev/"
+            ]
+        }
+    ],
+    "timestamp": "2026-06-06T13:09:06.862",
+    "file": "/home/tom/Repositories/teaching/BioFindrTutorials/internal-functions-2.qmd",
+    "qnr_schema_version": "1.0.0"
+}

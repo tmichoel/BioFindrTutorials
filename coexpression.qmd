@@ -20,8 +20,6 @@ We begin by setting up the environment and loading some necessary packages.
 
 ```{julia}
 using DrWatson
-quickactivate(@__DIR__)
-
 using DataFrames
 using Arrow
 using Markdown

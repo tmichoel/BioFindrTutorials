@@ -1,0 +1,404 @@
+{
+    "cells": [
+        {
+            "id": "1",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "---\n",
+                "title: \"Causal inference\"\n",
+                "format:\n",
+                "  html:\n",
+                "    code-fold: false\n",
+                "engine: julia\n",
+                "execute: \n",
+                "  cache: true\n",
+                "  keep-ipynb: true\n",
+                "---\n",
+                "## Introduction\n",
+                "\n",
+                "The primary use of [BioFindr][1] is for causal inference from genomics and transcriptomics data. In causal inference, cis-acting eQTLs are used as causal anchors or instrumental variables to orient the direction of causality between coexpressed genes, see the [Findr paper][5] for more details. As in [coexpression analysis](coexpression.qmd) and [association analysis](association.qmd), the significance of a causal effect is computed using a gene-specific background distribution. This is again achieved by modelling the distribution of test statistics between a given gene $A$ and all other genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null $B$ gene for a given $A$ gene, and is fitted for every $A$ gene separately.\n",
+                "\n",
+                "Unlike in [coexpression analysis](coexpression.qmd) and [association analysis](association.qmd), causal inference cannot be performed using a single statistical test, but requires the combination of multiple tests. In [BioFindr][1], [six likelihood ratio tests](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/) are implemented, which can be combined in multiple ways for causal inference. Tests are combined by addition or mulitplication of the [posterior probabilities](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/) of individial tests, an approach first proposed in [this paper](https://doi.org/10.1186/gb-2007-8-10-r219).\n",
+                "\n",
+                "\n",
+                "We will illustrate how to run causal inference with [BioFindr][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.\n",
+                "\n",
+                "## Set up the environment"
+            ]
+        },
+        {
+            "id": "2",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "using DrWatson\n",
+                "using DataFrames\n",
+                "using Arrow\n",
+                "\n",
+                "using BioFindr"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "3",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "## Load data\n",
+                "\n",
+                "### Expression data\n",
+                "\n",
+                "[BioFindr][1] expects that expression data are stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples, see the [coexpression analysis tutorial](coexpression.qmd) for more details.\n",
+                "\n",
+                "This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called `dt`, and one for microRNA (miRNA) expression data called `dm`:"
+            ]
+        },
+        {
+            "id": "4",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dt = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dt.arrow\")));\n",
+                "dm = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dm.arrow\")));"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "5",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "### Genotype data\n",
+                "\n",
+                "[BioFindr][1] expects that genotype data are stored as [integer numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genetic variants) and rows to samples. [BioFindr][1] uses a categorical model to associate genetic variation to variation in gene expression, hence how different genotypes (e.g. heterozygous vs. homozygous) are encoded as integers does not matter. Future versions will support [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/) for representing genotype data.\n",
+                "\n",
+                "This tutorial uses two tables of expression data from the same set of samples, one with genotypes for mRNA eQTLs called `dgt`, and one for microRNA (miRNA) eQTLs called `dgm`:"
+            ]
+        },
+        {
+            "id": "6",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dgt = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dgt.arrow\")));\n",
+                "dgm = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dgm.arrow\")));"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "7",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "### eQTL mapping data\n",
+                "\n",
+                "The [preprocessed GEUVADIS data][2] has been organized such that each column of the genotype data is the strongest eQTLs for the corresponding column in the matching expression data. Usually however, eQTL mapping data will be available in the form of a table with variant IDs, gene IDs, and various eQTL associaion statistics (see the [original GEUVADIS file](https://www.ebi.ac.uk/biostudies/files/E-GEUV-1/E-GEUV-1/analysis_results/EUR373.gene.cis.FDR5.all.rs137.txt.gz) for an example). [BioFindr][1] expects that such a table is read into a [DataFrame][4], and that only the best (most strongly associated) eQTL is kept for each gene, that is, genes appear only once in the eQTL mapping table. Let's artificially create such tables for our data:"
+            ]
+        },
+        {
+            "id": "8",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dpt = DataFrame(SNP_ID = names(dgt), GENE_ID=names(dt)[1:ncol(dgt)]);\n",
+                "dpm = DataFrame(SNP_ID = names(dgm), GENE_ID=names(dm)[1:ncol(dgm)]);"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "9",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "## Run BioFindr\n",
+                "\n",
+                "### Subset-to-all causal inference\n",
+                "\n",
+                "In the most common scenario, we have a dataset of gene expression values, with significant cis-eQTL instruments for a subset of genes (\"eGenes\"). We can then infer causal interactions from the eGenes to all other genes (including other eGenes). For instance, to infer causal microRNA $\\to$ microRNA interaction, run:"
+            ]
+        },
+        {
+            "id": "10",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP = findr(dm, dgm, dpm; FDR=0.25, method=\"kde\")"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "\u001b[1m55×4 DataFrame\u001b[0m\n\u001b[1m Row \u001b[0m│\u001b[1m Source            \u001b[0m\u001b[1m Target            \u001b[0m\u001b[1m Probability \u001b[0m\u001b[1m qvalue      \u001b[0m\n\u001b[1m     \u001b[0m│\u001b[90m String            \u001b[0m\u001b[90m String            \u001b[0m\u001b[90m Float64     \u001b[0m\u001b[90m Float64     \u001b[0m\n─────┼────────────────────────────────────────────────────────────────\n   1 │ hsa-miR-550a-2-5p  hsa-miR-550a-3-5p     1.0       0.0\n   2 │ hsa-miR-550a-2-3p  hsa-miR-550a-3-5p     1.0       1.26598e-10\n   3 │ hsa-miR-3130-1-5p  hsa-miR-3130-2-5p     1.0       5.15569e-10\n   4 │ hsa-miR-550a-2-3p  hsa-miR-550a-2-5p     1.0       8.94978e-10\n   5 │ hsa-miR-550a-2-5p  hsa-miR-550a-2-3p     1.0       1.4715e-9\n   6 │ hsa-miR-335-5p     hsa-miR-335-3p        0.999995  8.15308e-7\n   7 │ hsa-miR-335-3p     hsa-miR-335-5p        0.999921  1.19308e-5\n   8 │ hsa-miR-574-5p     hsa-miR-574-3p        0.999919  2.05171e-5\n  ⋮  │         ⋮                  ⋮               ⋮            ⋮\n  49 │ hsa-miR-3176-3p    hsa-miR-744-3p        0.627122  0.230447\n  50 │ hsa-miR-641-5p     hsa-miR-103a-1-5p     0.624291  0.233352\n  51 │ hsa-miR-193b-3p    hsa-miR-615-3p        0.624061  0.236148\n  52 │ hsa-miR-1304-3p    hsa-miR-16-2-3p       0.615244  0.239005\n  53 │ hsa-miR-3176-3p    hsa-miR-143-3p        0.601226  0.24202\n  54 │ hsa-miR-641-5p     hsa-miR-26a-2-3p      0.599607  0.244953\n  55 │ hsa-miR-3176-3p    hsa-miR-4524a-5p      0.594893  0.247865\n\u001b[36m                                                       40 rows omitted\u001b[0m",
+                        "text/html": "<div><div style = \"float: left;\"><span>55×4 DataFrame</span></div><div style = \"float: right; font-style: italic;\"><span>30 rows omitted</span></div><div style = \"clear: both;\"></div></div><div class = \"data-frame\" style = \"overflow-x: scroll;\"><table class = \"data-frame\" style = \"margin-bottom: 6px;\"><thead><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\">Row</th><th style = \"text-align: left;\">Source</th><th style = \"text-align: left;\">Target</th><th style = \"text-align: left;\">Probability</th><th style = \"text-align: left;\">qvalue</th></tr><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\"></th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th></tr></thead><tbody><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">1</td><td style = \"text-align: left;\">hsa-miR-550a-2-5p</td><td style = \"text-align: left;\">hsa-miR-550a-3-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">2</td><td style = \"text-align: left;\">hsa-miR-550a-2-3p</td><td style = \"text-align: left;\">hsa-miR-550a-3-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">1.26598e-10</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3</td><td style = \"text-align: left;\">hsa-miR-3130-1-5p</td><td style = \"text-align: left;\">hsa-miR-3130-2-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">5.15569e-10</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">4</td><td style = \"text-align: left;\">hsa-miR-550a-2-3p</td><td style = \"text-align: left;\">hsa-miR-550a-2-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">8.94978e-10</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">5</td><td style = \"text-align: left;\">hsa-miR-550a-2-5p</td><td style = \"text-align: left;\">hsa-miR-550a-2-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">1.4715e-9</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">6</td><td style = \"text-align: left;\">hsa-miR-335-5p</td><td style = \"text-align: left;\">hsa-miR-335-3p</td><td style = \"text-align: right;\">0.999995</td><td style = \"text-align: right;\">8.15308e-7</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">7</td><td style = \"text-align: left;\">hsa-miR-335-3p</td><td style = \"text-align: left;\">hsa-miR-335-5p</td><td style = \"text-align: right;\">0.999921</td><td style = \"text-align: right;\">1.19308e-5</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">8</td><td style = \"text-align: left;\">hsa-miR-574-5p</td><td style = \"text-align: left;\">hsa-miR-574-3p</td><td style = \"text-align: right;\">0.999919</td><td style = \"text-align: right;\">2.05171e-5</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">9</td><td style = \"text-align: left;\">hsa-miR-3130-2-5p</td><td style = \"text-align: left;\">hsa-miR-3130-1-5p</td><td style = \"text-align: right;\">0.987371</td><td style = \"text-align: right;\">0.00142145</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">10</td><td style = \"text-align: left;\">hsa-miR-1908-3p</td><td style = \"text-align: left;\">hsa-miR-1908-5p</td><td style = \"text-align: right;\">0.938239</td><td style = \"text-align: right;\">0.00745537</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">11</td><td style = \"text-align: left;\">hsa-miR-3667-5p</td><td style = \"text-align: left;\">hsa-miR-3667-3p</td><td style = \"text-align: right;\">0.898732</td><td style = \"text-align: right;\">0.0159838</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">12</td><td style = \"text-align: left;\">hsa-miR-3176-3p</td><td style = \"text-align: left;\">hsa-miR-19b-1-3p</td><td style = \"text-align: right;\">0.893081</td><td style = \"text-align: right;\">0.0235617</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">13</td><td style = \"text-align: left;\">hsa-miR-3667-3p</td><td style = \"text-align: left;\">hsa-miR-3667-5p</td><td style = \"text-align: right;\">0.88392</td><td style = \"text-align: right;\">0.0306785</td></tr><tr><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">44</td><td style = \"text-align: left;\">hsa-miR-641-5p</td><td style = \"text-align: left;\">hsa-miR-103a-2-5p</td><td style = \"text-align: right;\">0.636497</td><td style = \"text-align: right;\">0.214726</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">45</td><td style = \"text-align: left;\">hsa-miR-3176-3p</td><td style = \"text-align: left;\">hsa-miR-130b-3p</td><td style = \"text-align: right;\">0.634758</td><td style = \"text-align: right;\">0.218071</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">46</td><td style = \"text-align: left;\">hsa-miR-1304-3p</td><td style = \"text-align: left;\">hsa-miR-619-5p</td><td style = \"text-align: right;\">0.633773</td><td style = \"text-align: right;\">0.221292</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">47</td><td style = \"text-align: left;\">hsa-miR-1307-5p</td><td style = \"text-align: left;\">hsa-miR-589-5p</td><td style = \"text-align: right;\">0.63287</td><td style = \"text-align: right;\">0.224395</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">48</td><td style = \"text-align: left;\">hsa-miR-3176-3p</td><td style = \"text-align: left;\">hsa-miR-26a-1-5p</td><td style = \"text-align: right;\">0.627556</td><td style = \"text-align: right;\">0.227479</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49</td><td style = \"text-align: left;\">hsa-miR-3176-3p</td><td style = \"text-align: left;\">hsa-miR-744-3p</td><td style = \"text-align: right;\">0.627122</td><td style = \"text-align: right;\">0.230447</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">50</td><td style = \"text-align: left;\">hsa-miR-641-5p</td><td style = \"text-align: left;\">hsa-miR-103a-1-5p</td><td style = \"text-align: right;\">0.624291</td><td style = \"text-align: right;\">0.233352</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">51</td><td style = \"text-align: left;\">hsa-miR-193b-3p</td><td style = \"text-align: left;\">hsa-miR-615-3p</td><td style = \"text-align: right;\">0.624061</td><td style = \"text-align: right;\">0.236148</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">52</td><td style = \"text-align: left;\">hsa-miR-1304-3p</td><td style = \"text-align: left;\">hsa-miR-16-2-3p</td><td style = \"text-align: right;\">0.615244</td><td style = \"text-align: right;\">0.239005</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">53</td><td style = \"text-align: left;\">hsa-miR-3176-3p</td><td style = \"text-align: left;\">hsa-miR-143-3p</td><td style = \"text-align: right;\">0.601226</td><td style = \"text-align: right;\">0.24202</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">54</td><td style = \"text-align: left;\">hsa-miR-641-5p</td><td style = \"text-align: left;\">hsa-miR-26a-2-3p</td><td style = \"text-align: right;\">0.599607</td><td style = \"text-align: right;\">0.244953</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">55</td><td style = \"text-align: left;\">hsa-miR-3176-3p</td><td style = \"text-align: left;\">hsa-miR-4524a-5p</td><td style = \"text-align: right;\">0.594893</td><td style = \"text-align: right;\">0.247865</td></tr></tbody></table></div>",
+                        "text/latex": "\\begin{tabular}{r|cccc}\n\t& Source & Target & Probability & qvalue\\\\\n\t\\hline\n\t& String & String & Float64 & Float64\\\\\n\t\\hline\n\t1 & hsa-miR-550a-2-5p & hsa-miR-550a-3-5p & 1.0 & 0.0 \\\\\n\t2 & hsa-miR-550a-2-3p & hsa-miR-550a-3-5p & 1.0 & 1.26598e-10 \\\\\n\t3 & hsa-miR-3130-1-5p & hsa-miR-3130-2-5p & 1.0 & 5.15569e-10 \\\\\n\t4 & hsa-miR-550a-2-3p & hsa-miR-550a-2-5p & 1.0 & 8.94978e-10 \\\\\n\t5 & hsa-miR-550a-2-5p & hsa-miR-550a-2-3p & 1.0 & 1.4715e-9 \\\\\n\t6 & hsa-miR-335-5p & hsa-miR-335-3p & 0.999995 & 8.15308e-7 \\\\\n\t7 & hsa-miR-335-3p & hsa-miR-335-5p & 0.999921 & 1.19308e-5 \\\\\n\t8 & hsa-miR-574-5p & hsa-miR-574-3p & 0.999919 & 2.05171e-5 \\\\\n\t9 & hsa-miR-3130-2-5p & hsa-miR-3130-1-5p & 0.987371 & 0.00142145 \\\\\n\t10 & hsa-miR-1908-3p & hsa-miR-1908-5p & 0.938239 & 0.00745537 \\\\\n\t11 & hsa-miR-3667-5p & hsa-miR-3667-3p & 0.898732 & 0.0159838 \\\\\n\t12 & hsa-miR-3176-3p & hsa-miR-19b-1-3p & 0.893081 & 0.0235617 \\\\\n\t13 & hsa-miR-3667-3p & hsa-miR-3667-5p & 0.88392 & 0.0306785 \\\\\n\t14 & hsa-miR-193b-3p & hsa-miR-345-5p & 0.877796 & 0.037216 \\\\\n\t15 & hsa-miR-3176-3p & hsa-miR-548ac-5p & 0.845234 & 0.0450527 \\\\\n\t16 & hsa-miR-193b-3p & hsa-miR-193b-5p & 0.794304 & 0.0550929 \\\\\n\t17 & hsa-miR-3176-3p & hsa-miR-19a-3p & 0.78842 & 0.064298 \\\\\n\t18 & hsa-miR-1304-3p & hsa-miR-548ar-5p & 0.764501 & 0.0738092 \\\\\n\t19 & hsa-let-7b-5p & hsa-let-7b-3p & 0.734285 & 0.0839095 \\\\\n\t20 & hsa-miR-1307-3p & hsa-miR-598-3p & 0.731806 & 0.0931237 \\\\\n\t21 & hsa-miR-1304-3p & hsa-miR-194-2-5p & 0.728245 & 0.10163 \\\\\n\t22 & hsa-miR-1307-3p & hsa-miR-625-5p & 0.726125 & 0.109459 \\\\\n\t23 & hsa-miR-1307-5p & hsa-miR-1307-3p & 0.725208 & 0.116648 \\\\\n\t24 & hsa-miR-1304-3p & hsa-miR-150-3p & 0.723826 & 0.123295 \\\\\n\t$\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ \\\\\n\\end{tabular}\n"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "11",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "BioFindr computes a [posterior probability](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/) of a non-zero causal interaction for every pair pf **Source** and **Target** genes (columns of `dm`). The possible **Source** genes are the eGenes, the subset of genes with cis-eQTLs (columns of `dgm`), as defined by the eQTL-to-gene mapping in `dpm`.\n",
+                "\n",
+                "By default the output is sorted by decreasing **Probability**. The optional parameter **FDR** can be used to limit the output to the set of pairs that has a [global false discovery rate (FDR)](https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure) less than a desired value (here set to 10%). The **qvalue** column in the output can be used for further filtering of the output, see the [coexpression analysis tutorial](coexpression.qmd) for more details.\n",
+                "\n",
+                "Note the order of input arguments: first `dm`, the expression data, then `dgm`, the genotype data, and then `dpm`, the eQTL mapping of variants to eGenes.\n",
+                "\n",
+                "By default, BioFindr assumes that the first column of `dpm` is a list of variant names that can be found in the column names of `dgm`, and that the second column of `dpm` is a list of gene names that can be found in the column names of `dm`:"
+            ]
+        },
+        {
+            "id": "12",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dpm"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "\u001b[1m55×2 DataFrame\u001b[0m\n\u001b[1m Row \u001b[0m│\u001b[1m SNP_ID      \u001b[0m\u001b[1m GENE_ID           \u001b[0m\n\u001b[1m     \u001b[0m│\u001b[90m String      \u001b[0m\u001b[90m String            \u001b[0m\n─────┼────────────────────────────────\n   1 │ rs201731283  hsa-miR-4804-5p\n   2 │ rs73933236   hsa-miR-641-5p\n   3 │ rs17269517   hsa-miR-2116-3p\n   4 │ rs2273626    hsa-miR-4707-3p\n   5 │ rs174559     hsa-miR-1908-5p\n   6 │ rs7095504    hsa-miR-2110-5p\n   7 │ rs2583391    hsa-miR-1255a-5p\n   8 │ rs5743580    hsa-miR-574-3p\n  ⋮  │      ⋮               ⋮\n  49 │ rs6462386    hsa-miR-550a-2-3p\n  50 │ rs745666     hsa-miR-3615-3p\n  51 │ rs817478     hsa-miR-4423-5p\n  52 │ rs73054305   hsa-miR-642a-5p\n  53 │ rs3807344_1  hsa-miR-335-3p\n  54 │ rs4393680    hsa-miR-4741-3p\n  55 │ rs2583392    hsa-miR-1255a-3p\n\u001b[36m                       40 rows omitted\u001b[0m",
+                        "text/html": "<div><div style = \"float: left;\"><span>55×2 DataFrame</span></div><div style = \"float: right; font-style: italic;\"><span>30 rows omitted</span></div><div style = \"clear: both;\"></div></div><div class = \"data-frame\" style = \"overflow-x: scroll;\"><table class = \"data-frame\" style = \"margin-bottom: 6px;\"><thead><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\">Row</th><th style = \"text-align: left;\">SNP_ID</th><th style = \"text-align: left;\">GENE_ID</th></tr><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\"></th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"String\" style = \"text-align: left;\">String</th></tr></thead><tbody><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">1</td><td style = \"text-align: left;\">rs201731283</td><td style = \"text-align: left;\">hsa-miR-4804-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">2</td><td style = \"text-align: left;\">rs73933236</td><td style = \"text-align: left;\">hsa-miR-641-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3</td><td style = \"text-align: left;\">rs17269517</td><td style = \"text-align: left;\">hsa-miR-2116-3p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">4</td><td style = \"text-align: left;\">rs2273626</td><td style = \"text-align: left;\">hsa-miR-4707-3p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">5</td><td style = \"text-align: left;\">rs174559</td><td style = \"text-align: left;\">hsa-miR-1908-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">6</td><td style = \"text-align: left;\">rs7095504</td><td style = \"text-align: left;\">hsa-miR-2110-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">7</td><td style = \"text-align: left;\">rs2583391</td><td style = \"text-align: left;\">hsa-miR-1255a-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">8</td><td style = \"text-align: left;\">rs5743580</td><td style = \"text-align: left;\">hsa-miR-574-3p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">9</td><td style = \"text-align: left;\">rs143756085</td><td style = \"text-align: left;\">hsa-miR-1270-2-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">10</td><td style = \"text-align: left;\">rs17269517_1</td><td style = \"text-align: left;\">hsa-miR-2116-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">11</td><td style = \"text-align: left;\">rs11191968</td><td style = \"text-align: left;\">hsa-miR-4482-1-3p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">12</td><td style = \"text-align: left;\">rs8141807</td><td style = \"text-align: left;\">hsa-miR-3667-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">13</td><td style = \"text-align: left;\">rs648571</td><td style = \"text-align: left;\">hsa-miR-5680-3p</td></tr><tr><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">44</td><td style = \"text-align: left;\">rs1378942</td><td style = \"text-align: left;\">hsa-miR-4513-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">45</td><td style = \"text-align: left;\">rs768533_1</td><td style = \"text-align: left;\">hsa-miR-3130-1-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">46</td><td style = \"text-align: left;\">rs78562044</td><td style = \"text-align: left;\">hsa-miR-30a-3p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">47</td><td style = \"text-align: left;\">rs35671783</td><td style = \"text-align: left;\">hsa-miR-1304-3p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">48</td><td style = \"text-align: left;\">rs2537621</td><td style = \"text-align: left;\">hsa-miR-589-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49</td><td style = \"text-align: left;\">rs6462386</td><td style = \"text-align: left;\">hsa-miR-550a-2-3p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">50</td><td style = \"text-align: left;\">rs745666</td><td style = \"text-align: left;\">hsa-miR-3615-3p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">51</td><td style = \"text-align: left;\">rs817478</td><td style = \"text-align: left;\">hsa-miR-4423-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">52</td><td style = \"text-align: left;\">rs73054305</td><td style = \"text-align: left;\">hsa-miR-642a-5p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">53</td><td style = \"text-align: left;\">rs3807344_1</td><td style = \"text-align: left;\">hsa-miR-335-3p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">54</td><td style = \"text-align: left;\">rs4393680</td><td style = \"text-align: left;\">hsa-miR-4741-3p</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">55</td><td style = \"text-align: left;\">rs2583392</td><td style = \"text-align: left;\">hsa-miR-1255a-3p</td></tr></tbody></table></div>",
+                        "text/latex": "\\begin{tabular}{r|cc}\n\t& SNP\\_ID & GENE\\_ID\\\\\n\t\\hline\n\t& String & String\\\\\n\t\\hline\n\t1 & rs201731283 & hsa-miR-4804-5p \\\\\n\t2 & rs73933236 & hsa-miR-641-5p \\\\\n\t3 & rs17269517 & hsa-miR-2116-3p \\\\\n\t4 & rs2273626 & hsa-miR-4707-3p \\\\\n\t5 & rs174559 & hsa-miR-1908-5p \\\\\n\t6 & rs7095504 & hsa-miR-2110-5p \\\\\n\t7 & rs2583391 & hsa-miR-1255a-5p \\\\\n\t8 & rs5743580 & hsa-miR-574-3p \\\\\n\t9 & rs143756085 & hsa-miR-1270-2-5p \\\\\n\t10 & rs17269517\\_1 & hsa-miR-2116-5p \\\\\n\t11 & rs11191968 & hsa-miR-4482-1-3p \\\\\n\t12 & rs8141807 & hsa-miR-3667-5p \\\\\n\t13 & rs648571 & hsa-miR-5680-3p \\\\\n\t14 & rs71532525 & hsa-miR-550a-2-5p \\\\\n\t15 & rs13163017 & hsa-miR-1294-5p \\\\\n\t16 & rs768533 & hsa-miR-3130-2-5p \\\\\n\t17 & rs5792235 & hsa-miR-1908-3p \\\\\n\t18 & rs6584542 & hsa-miR-1307-5p \\\\\n\t19 & rs6987762 & hsa-miR-3150b-3p \\\\\n\t20 & rs3744749 & hsa-let-7b-5p \\\\\n\t21 & rs2271751 & hsa-miR-1307-3p \\\\\n\t22 & indel:3I\\_20\\_62542026 & hsa-miR-941-3-5p \\\\\n\t23 & rs200458935 & hsa-miR-96-5p \\\\\n\t24 & rs11583992 & hsa-miR-200b-3p \\\\\n\t$\\dots$ & $\\dots$ & $\\dots$ \\\\\n\\end{tabular}\n"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "13",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "If your eQTL mapping DataFrame has the relevant columns in a different place, you need to use the optional arguments `colX` (for the gene expression IDs) and `colG` (for the eQTL genotype IDs) to specify either the relevant columns index or name:\n",
+                ""
+            ]
+        },
+        {
+            "id": "14",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP = findr(dm, dgm, dpm; colX=2, colG=1, FDR=0.1, method=\"kde\");"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "15",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "or"
+            ]
+        },
+        {
+            "id": "16",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP = findr(dm, dgm, dpm; colX=\"GENE_ID\", colG=\"SNP_ID\", FDR=0.1, method=\"kde\");"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "17",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "Any other columns in the eQTL mapping DataFrame (such as association summary statistics) are ignored.\n",
+                "\n",
+                "### Bipartite causal inference\n",
+                "\n",
+                "In some applications, we have multiple omics datasets from the same samples, and may be interested in causal inference from one set of variables to another one. In the GEUVADIS study for instance, we may be interested in inferring causal interactions between microRNAs and target genes. To infer interactions *from* microRNAs *to* mRNAs, run:\n",
+                ""
+            ]
+        },
+        {
+            "id": "18",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP = findr(dt, dm, dgm, dpm; FDR=0.1)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "\u001b[1m9×4 DataFrame\u001b[0m\n\u001b[1m Row \u001b[0m│\u001b[1m Source            \u001b[0m\u001b[1m Target     \u001b[0m\u001b[1m Probability \u001b[0m\u001b[1m qvalue      \u001b[0m\n\u001b[1m     \u001b[0m│\u001b[90m String            \u001b[0m\u001b[90m String     \u001b[0m\u001b[90m Float64     \u001b[0m\u001b[90m Float64     \u001b[0m\n─────┼─────────────────────────────────────────────────────────\n   1 │ hsa-miR-345-5p     SLC25A29       0.999814  0.00018602\n   2 │ hsa-let-7b-5p      PRR34-AS1      0.999749  0.000218495\n   3 │ hsa-miR-574-5p     FAM114A1       0.999349  0.000362817\n   4 │ hsa-miR-574-3p     FAM114A1       0.999102  0.000496625\n   5 │ hsa-let-7b-5p      MIRLET7BHG     0.998505  0.000696205\n   6 │ hsa-miR-574-5p     TLR10          0.894855  0.0181044\n   7 │ hsa-miR-1270-2-5p  ZNF826P        0.889367  0.0313227\n   8 │ hsa-miR-642a-5p    GIPR           0.779278  0.0549977\n   9 │ hsa-miR-181c-5p    C19orf53       0.749367  0.0767349",
+                        "text/html": "<div><div style = \"float: left;\"><span>9×4 DataFrame</span></div><div style = \"clear: both;\"></div></div><div class = \"data-frame\" style = \"overflow-x: scroll;\"><table class = \"data-frame\" style = \"margin-bottom: 6px;\"><thead><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\">Row</th><th style = \"text-align: left;\">Source</th><th style = \"text-align: left;\">Target</th><th style = \"text-align: left;\">Probability</th><th style = \"text-align: left;\">qvalue</th></tr><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\"></th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th></tr></thead><tbody><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">1</td><td style = \"text-align: left;\">hsa-miR-345-5p</td><td style = \"text-align: left;\">SLC25A29</td><td style = \"text-align: right;\">0.999814</td><td style = \"text-align: right;\">0.00018602</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">2</td><td style = \"text-align: left;\">hsa-let-7b-5p</td><td style = \"text-align: left;\">PRR34-AS1</td><td style = \"text-align: right;\">0.999749</td><td style = \"text-align: right;\">0.000218495</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3</td><td style = \"text-align: left;\">hsa-miR-574-5p</td><td style = \"text-align: left;\">FAM114A1</td><td style = \"text-align: right;\">0.999349</td><td style = \"text-align: right;\">0.000362817</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">4</td><td style = \"text-align: left;\">hsa-miR-574-3p</td><td style = \"text-align: left;\">FAM114A1</td><td style = \"text-align: right;\">0.999102</td><td style = \"text-align: right;\">0.000496625</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">5</td><td style = \"text-align: left;\">hsa-let-7b-5p</td><td style = \"text-align: left;\">MIRLET7BHG</td><td style = \"text-align: right;\">0.998505</td><td style = \"text-align: right;\">0.000696205</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">6</td><td style = \"text-align: left;\">hsa-miR-574-5p</td><td style = \"text-align: left;\">TLR10</td><td style = \"text-align: right;\">0.894855</td><td style = \"text-align: right;\">0.0181044</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">7</td><td style = \"text-align: left;\">hsa-miR-1270-2-5p</td><td style = \"text-align: left;\">ZNF826P</td><td style = \"text-align: right;\">0.889367</td><td style = \"text-align: right;\">0.0313227</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">8</td><td style = \"text-align: left;\">hsa-miR-642a-5p</td><td style = \"text-align: left;\">GIPR</td><td style = \"text-align: right;\">0.779278</td><td style = \"text-align: right;\">0.0549977</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">9</td><td style = \"text-align: left;\">hsa-miR-181c-5p</td><td style = \"text-align: left;\">C19orf53</td><td style = \"text-align: right;\">0.749367</td><td style = \"text-align: right;\">0.0767349</td></tr></tbody></table></div>",
+                        "text/latex": "\\begin{tabular}{r|cccc}\n\t& Source & Target & Probability & qvalue\\\\\n\t\\hline\n\t& String & String & Float64 & Float64\\\\\n\t\\hline\n\t1 & hsa-miR-345-5p & SLC25A29 & 0.999814 & 0.00018602 \\\\\n\t2 & hsa-let-7b-5p & PRR34-AS1 & 0.999749 & 0.000218495 \\\\\n\t3 & hsa-miR-574-5p & FAM114A1 & 0.999349 & 0.000362817 \\\\\n\t4 & hsa-miR-574-3p & FAM114A1 & 0.999102 & 0.000496625 \\\\\n\t5 & hsa-let-7b-5p & MIRLET7BHG & 0.998505 & 0.000696205 \\\\\n\t6 & hsa-miR-574-5p & TLR10 & 0.894855 & 0.0181044 \\\\\n\t7 & hsa-miR-1270-2-5p & ZNF826P & 0.889367 & 0.0313227 \\\\\n\t8 & hsa-miR-642a-5p & GIPR & 0.779278 & 0.0549977 \\\\\n\t9 & hsa-miR-181c-5p & C19orf53 & 0.749367 & 0.0767349 \\\\\n\\end{tabular}\n"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "19",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "### Causal test combinations\n",
+                "\n",
+                "As indicated above, causal inference requires the combination of multiple statistical tests, and [BioFindr][1] supports [multiple such combinations](https://tmichoel.github.io/BioFindr.jl/dev/testLLR/#Causal-inference), each with their own strengths and weaknesses. Comparisons between the different methods can be found in the [original BioFindr paper][5] and in a [follow-up paper][6]. In brief, the following combinations are available:\n",
+                "\n",
+                "#### Instrumental variables (default)\n",
+                "\n",
+                "The *instrumental variables* (IV) test combination infers a causal $A\\to B$ interaction if there is a genetic association $E\\to B$, where $E$ is the causal anchor (best cis-eQTL for $A$), and if $A$ and $B$ are not independently associated with $E$ (no pleiotropic effect). This test combination has been shown to provide a good balance between false negative and false positive rate and has a clear genetic interpretation. It is therefore recommended as the default combination. To use the instrumental variable test combination, you don't need to do anything (it's the default):"
+            ]
+        },
+        {
+            "id": "20",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP = findr(dm, dgm, dpm; FDR=0.1);"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "21",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "or, you can explicitly set the optional parameter `combination=\"IV\"`:"
+            ]
+        },
+        {
+            "id": "22",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP = findr(dm, dgm, dpm; FDR=0.1, combination=\"IV\");"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "23",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "#### Mediation\n",
+                "\n",
+                "The *mediation test* infers a causal $A\\to B$ interaction if there is a genetic association $E\\to B$ and if this association disappears after conditioning on $A$. If these two tests are true, the causal graph must be $E\\to A\\to B$. As a result, this test combination has a very low false positive rate, but in most applications it is hampered by a high false negative rate: if $A$ and $B$ are jointly regulated by a third factor $C$, the mediation test will fail even in the presence of a true $A\\to B$ interaction. To use the mediation test combination, set the optional parameter `combination=\"mediation\"`:"
+            ]
+        },
+        {
+            "id": "24",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP_med = findr(dm, dgm, dpm; FDR=0.1, combination=\"mediation\");"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "25",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "#### Original BioFindr combination\n",
+                "\n",
+                "In the [original BioFindr paper][5], a new test combination was proposed that combines the instrumental variable test combination with a new [relevance test](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#Relevance-test). On simulated data, this new combination further reduced the false negative rate compared to the IV combination. at the expense of an increased false positive rate, for an overall improved performance. However, the relevance test does not have a clear genetic or causal interpretation, and on real data, performance is generally equivalent to the IV combination, and therefore the IV combination is now recommended as the default. To use the original BioFindr test combination, set the optional parameter `combination=\"orig\"`:"
+            ]
+        },
+        {
+            "id": "26",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP_orig = findr(dm, dgm, dpm; FDR=0.1, combination=\"orig\");"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "27",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "[1]: https://github.com/tmichoel/BioFindr.jl\n",
+                "[2]: https://github.com/lingfeiwang/findr-data-geuvadis\n",
+                "[3]: https://doi.org/10.1038/nature12531\n",
+                "[4]: https://dataframes.juliadata.org/stable/\n",
+                "[5]: https://doi.org/10.1371/journal.pcbi.1005703\n",
+                "[6]: https://doi.org/10.1039/D0MO00140F"
+            ]
+        }
+    ],
+    "timestamp": "2026-06-05T19:37:23.124",
+    "file": "/home/tom/Repositories/teaching/BioFindrTutorials/causal-inference.qmd",
+    "qnr_schema_version": "1.0.0"
+}

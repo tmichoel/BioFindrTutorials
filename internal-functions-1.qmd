@@ -19,8 +19,6 @@ The only functions [exported](https://docs.julialang.org/en/v1/manual/modules/#E
 
 ```{julia}
 using DrWatson
-quickactivate(@__DIR__)
-
 using DataFrames
 using Arrow
 using StatsPlots

@@ -18,12 +18,10 @@ The posterior probabilities computed by the `findr` function can be used as a gr
 
 ```{julia}
 using DrWatson
-quickactivate(@__DIR__)
-
 using DataFrames
 using Arrow
 using GLMakie
-using GraphMakie
+using GraphMakie: graphplot
 
 using BioFindr
 ```

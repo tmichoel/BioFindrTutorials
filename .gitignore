@@ -433,3 +433,5 @@ $RECYCLE.BIN/
 /.quarto/
 .vscode/settings.json
 _freeze/coexpression/execute-results/html.json
+
+**/*.quarto_ipynb

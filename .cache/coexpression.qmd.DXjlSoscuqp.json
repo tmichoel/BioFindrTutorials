@@ -1,0 +1,347 @@
+{
+    "cells": [
+        {
+            "id": "1",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "---\n",
+                "title: \"Coexpression analysis\"\n",
+                "format:\n",
+                "  html: default\n",
+                "  ipynb: default\n",
+                "engine: julia\n",
+                "execute: \n",
+                "  cache: true\n",
+                "  keep-ipynb: true\n",
+                "---\n",
+                "## Introduction\n",
+                "\n",
+                "While [BioFindr] is developed primarily for causal inference from genomics and transcriptomics data, coexpression analysis of transcriptomics data alone is also possible. In coexpression analysis, pairwise correlation is used as a simple measure for the probability of two genes being functionally related either through direct or indirect regulation, or through coregulation by a third factor. In [BioFindr][1], significance of pairwise correlation is computed using a gene-specific background distribution, allowing for genes having different biological roles. For instance, it is known that many biological networks are [scale-free](https://en.wikipedia.org/wiki/Scale-free_network), where a small number of so-called \"hub genes\" have a high number of interaction partners while most other genes only have few. In [BioFindr][1], this is accomodated by modelling the distribution of correlation values between a given gene $A$ and all other genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) correlations. The relative weight of each component reflects the prior probability of finding a non-null $B$ gene for a given $A$ gene, and is fitted for every $A$ gene separately.\n",
+                "\n",
+                "We will illustrate how to run coexpression analysis with [BioFindr][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.\n",
+                "\n",
+                "## Set up the environment\n",
+                "\n",
+                "We begin by setting up the environment and loading some necessary packages."
+            ]
+        },
+        {
+            "id": "2",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "using DrWatson\n",
+                "using DataFrames\n",
+                "using Arrow\n",
+                "using Markdown\n",
+                "\n",
+                "using BioFindr"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "3",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "## Load expression data\n",
+                "\n",
+                "[BioFindr][1] expects that expression data are stored in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples. An expression [DataFrame][4] should not contain any other columns (e.g. gene annotation) than gene expression columns, and gene expression data should be stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). Internally, [BioFindr][1] operates on matrices, and if you have an expression [DataFrame][4] `df`, then `Matrix(df)` should return a matrix of floats.\n",
+                "\n",
+                "At the moment, [BioFindr][1] does not support count-based expression data being provided as a [DataFrame][4] of integers. This is not an intrinsic limitation of the method, but simply to distinguish expression data from integer-valued genotype data. Future versions will remove this limitation by supporting [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/).\n",
+                "\n",
+                "This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called `dt`, and one for microRNA (miRNA) expression data called `dm`:"
+            ]
+        },
+        {
+            "id": "4",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dt = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dt.arrow\")));\n",
+                "dm = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dm.arrow\")));"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "5",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+            ]
+        },
+        {
+            "id": "6",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "#| echo: false\n",
+                "nt1, nt2 = size(dt)\n",
+                "nm1, nm2 = size(dm)\n",
+                "Markdown.parse(\"\"\"\n",
+                "The mRNA data has expression data for $nt2 genes in $nt1 samples, while miRNA data is available for $nm2 miRNAs in the same $nm1 samples.\n",
+                "\"\"\")"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "  The mRNA data has expression data for 19947 genes in 360 samples, while\n  miRNA data is available for 674 miRNAs in the same 360 samples.",
+                        "text/markdown": "The mRNA data has expression data for 19947 genes in 360 samples, while miRNA data is available for 674 miRNAs in the same 360 samples.\n",
+                        "text/html": "<div class=\"markdown\"><p>The mRNA data has expression data for 19947 genes in 360 samples, while miRNA data is available for 674 miRNAs in the same 360 samples.</p>\n</div>",
+                        "text/latex": "The mRNA data has expression data for 19947 genes in 360 samples, while miRNA data is available for 674 miRNAs in the same 360 samples.\n\n"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "7",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "We can confirm that the data frames are of the right type:"
+            ]
+        },
+        {
+            "id": "8",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "[typeof(Matrix(dt)) typeof(Matrix(dm))]"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "1×2 Matrix{DataType}:\n Matrix{Float64}  Matrix{Float64}"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "9",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "## Run BioFindr\n",
+                "\n",
+                "### All-vs-all coexpression analysis\n",
+                "\n",
+                "The simplest type of coexpression analysis tests for non-zero correlation among all possible pairs in a gene expression dataset. Let's do this for the miRNA data:"
+            ]
+        },
+        {
+            "id": "10",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP_mir_all = findr(dm, FDR=0.05)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "\u001b[1m30827×4 DataFrame\u001b[0m\n\u001b[1m   Row \u001b[0m│\u001b[1m Source            \u001b[0m\u001b[1m Target            \u001b[0m\u001b[1m Probability \u001b[0m\u001b[1m qvalue    \u001b[0m\n\u001b[1m       \u001b[0m│\u001b[90m String            \u001b[0m\u001b[90m String            \u001b[0m\u001b[90m Float64     \u001b[0m\u001b[90m Float64   \u001b[0m\n───────┼──────────────────────────────────────────────────────────────\n     1 │ hsa-miR-574-3p     hsa-miR-574-5p        1.0       0.0\n     2 │ hsa-miR-4482-1-3p  hsa-miR-1304-3p       1.0       0.0\n     3 │ hsa-miR-3667-5p    hsa-miR-3667-3p       1.0       0.0\n     4 │ hsa-miR-550a-2-5p  hsa-miR-550a-2-3p     1.0       0.0\n     5 │ hsa-miR-550a-2-5p  hsa-miR-550a-3-5p     1.0       0.0\n     6 │ hsa-miR-3130-2-5p  hsa-miR-3130-1-5p     1.0       0.0\n     7 │ hsa-let-7b-5p      hsa-let-7b-3p         1.0       0.0\n     8 │ hsa-miR-96-5p      hsa-miR-182-5p        1.0       0.0\n   ⋮   │         ⋮                  ⋮               ⋮           ⋮\n 30821 │ hsa-miR-107-3p     hsa-miR-152-3p        0.858735  0.0499807\n 30822 │ hsa-miR-17-3p      hsa-miR-744-3p        0.858733  0.0499836\n 30823 │ hsa-miR-362-5p     hsa-miR-616-5p        0.858731  0.0499866\n 30824 │ hsa-miR-223-3p     hsa-miR-3688-1-3p     0.858729  0.0499895\n 30825 │ hsa-miR-21-3p      hsa-miR-1260b-5p      0.858729  0.0499925\n 30826 │ hsa-miR-4517-5p    hsa-miR-365a-3p       0.858728  0.0499955\n 30827 │ hsa-miR-342-3p     hsa-miR-93-3p         0.858715  0.0499984\n\u001b[36m                                                    30812 rows omitted\u001b[0m",
+                        "text/html": "<div><div style = \"float: left;\"><span>30827×4 DataFrame</span></div><div style = \"float: right; font-style: italic;\"><span>30802 rows omitted</span></div><div style = \"clear: both;\"></div></div><div class = \"data-frame\" style = \"overflow-x: scroll;\"><table class = \"data-frame\" style = \"margin-bottom: 6px;\"><thead><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\">Row</th><th style = \"text-align: left;\">Source</th><th style = \"text-align: left;\">Target</th><th style = \"text-align: left;\">Probability</th><th style = \"text-align: left;\">qvalue</th></tr><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\"></th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th></tr></thead><tbody><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">1</td><td style = \"text-align: left;\">hsa-miR-574-3p</td><td style = \"text-align: left;\">hsa-miR-574-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">2</td><td style = \"text-align: left;\">hsa-miR-4482-1-3p</td><td style = \"text-align: left;\">hsa-miR-1304-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3</td><td style = \"text-align: left;\">hsa-miR-3667-5p</td><td style = \"text-align: left;\">hsa-miR-3667-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">4</td><td style = \"text-align: left;\">hsa-miR-550a-2-5p</td><td style = \"text-align: left;\">hsa-miR-550a-2-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">5</td><td style = \"text-align: left;\">hsa-miR-550a-2-5p</td><td style = \"text-align: left;\">hsa-miR-550a-3-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">6</td><td style = \"text-align: left;\">hsa-miR-3130-2-5p</td><td style = \"text-align: left;\">hsa-miR-3130-1-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">7</td><td style = \"text-align: left;\">hsa-let-7b-5p</td><td style = \"text-align: left;\">hsa-let-7b-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">8</td><td style = \"text-align: left;\">hsa-miR-96-5p</td><td style = \"text-align: left;\">hsa-miR-182-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">9</td><td style = \"text-align: left;\">hsa-miR-96-5p</td><td style = \"text-align: left;\">hsa-miR-1271-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">10</td><td style = \"text-align: left;\">hsa-miR-3667-3p</td><td style = \"text-align: left;\">hsa-miR-3667-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">11</td><td style = \"text-align: left;\">hsa-miR-181c-5p</td><td style = \"text-align: left;\">hsa-miR-181c-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">12</td><td style = \"text-align: left;\">hsa-miR-181c-5p</td><td style = \"text-align: left;\">hsa-miR-181d-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">13</td><td style = \"text-align: left;\">hsa-miR-335-5p</td><td style = \"text-align: left;\">hsa-miR-335-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30816</td><td style = \"text-align: left;\">hsa-miR-769-5p</td><td style = \"text-align: left;\">hsa-miR-25-5p</td><td style = \"text-align: right;\">0.858747</td><td style = \"text-align: right;\">0.0499658</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30817</td><td style = \"text-align: left;\">hsa-miR-3133-5p</td><td style = \"text-align: left;\">hsa-miR-1976-3p</td><td style = \"text-align: right;\">0.858744</td><td style = \"text-align: right;\">0.0499688</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30818</td><td style = \"text-align: left;\">hsa-miR-320c-2-3p</td><td style = \"text-align: left;\">hsa-miR-1260a-5p</td><td style = \"text-align: right;\">0.858739</td><td style = \"text-align: right;\">0.0499718</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30819</td><td style = \"text-align: left;\">hsa-miR-378a-3p</td><td style = \"text-align: left;\">hsa-miR-24-1-3p</td><td style = \"text-align: right;\">0.858739</td><td style = \"text-align: right;\">0.0499747</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30820</td><td style = \"text-align: left;\">hsa-miR-642a-5p</td><td style = \"text-align: left;\">hsa-miR-744-5p</td><td style = \"text-align: right;\">0.858737</td><td style = \"text-align: right;\">0.0499777</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30821</td><td style = \"text-align: left;\">hsa-miR-107-3p</td><td style = \"text-align: left;\">hsa-miR-152-3p</td><td style = \"text-align: right;\">0.858735</td><td style = \"text-align: right;\">0.0499807</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30822</td><td style = \"text-align: left;\">hsa-miR-17-3p</td><td style = \"text-align: left;\">hsa-miR-744-3p</td><td style = \"text-align: right;\">0.858733</td><td style = \"text-align: right;\">0.0499836</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30823</td><td style = \"text-align: left;\">hsa-miR-362-5p</td><td style = \"text-align: left;\">hsa-miR-616-5p</td><td style = \"text-align: right;\">0.858731</td><td style = \"text-align: right;\">0.0499866</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30824</td><td style = \"text-align: left;\">hsa-miR-223-3p</td><td style = \"text-align: left;\">hsa-miR-3688-1-3p</td><td style = \"text-align: right;\">0.858729</td><td style = \"text-align: right;\">0.0499895</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30825</td><td style = \"text-align: left;\">hsa-miR-21-3p</td><td style = \"text-align: left;\">hsa-miR-1260b-5p</td><td style = \"text-align: right;\">0.858729</td><td style = \"text-align: right;\">0.0499925</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30826</td><td style = \"text-align: left;\">hsa-miR-4517-5p</td><td style = \"text-align: left;\">hsa-miR-365a-3p</td><td style = \"text-align: right;\">0.858728</td><td style = \"text-align: right;\">0.0499955</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">30827</td><td style = \"text-align: left;\">hsa-miR-342-3p</td><td style = \"text-align: left;\">hsa-miR-93-3p</td><td style = \"text-align: right;\">0.858715</td><td style = \"text-align: right;\">0.0499984</td></tr></tbody></table></div>",
+                        "text/latex": "\\begin{tabular}{r|cccc}\n\t& Source & Target & Probability & qvalue\\\\\n\t\\hline\n\t& String & String & Float64 & Float64\\\\\n\t\\hline\n\t1 & hsa-miR-574-3p & hsa-miR-574-5p & 1.0 & 0.0 \\\\\n\t2 & hsa-miR-4482-1-3p & hsa-miR-1304-3p & 1.0 & 0.0 \\\\\n\t3 & hsa-miR-3667-5p & hsa-miR-3667-3p & 1.0 & 0.0 \\\\\n\t4 & hsa-miR-550a-2-5p & hsa-miR-550a-2-3p & 1.0 & 0.0 \\\\\n\t5 & hsa-miR-550a-2-5p & hsa-miR-550a-3-5p & 1.0 & 0.0 \\\\\n\t6 & hsa-miR-3130-2-5p & hsa-miR-3130-1-5p & 1.0 & 0.0 \\\\\n\t7 & hsa-let-7b-5p & hsa-let-7b-3p & 1.0 & 0.0 \\\\\n\t8 & hsa-miR-96-5p & hsa-miR-182-5p & 1.0 & 0.0 \\\\\n\t9 & hsa-miR-96-5p & hsa-miR-1271-5p & 1.0 & 0.0 \\\\\n\t10 & hsa-miR-3667-3p & hsa-miR-3667-5p & 1.0 & 0.0 \\\\\n\t11 & hsa-miR-181c-5p & hsa-miR-181c-3p & 1.0 & 0.0 \\\\\n\t12 & hsa-miR-181c-5p & hsa-miR-181d-5p & 1.0 & 0.0 \\\\\n\t13 & hsa-miR-335-5p & hsa-miR-335-3p & 1.0 & 0.0 \\\\\n\t14 & hsa-miR-30a-5p & hsa-miR-30a-3p & 1.0 & 0.0 \\\\\n\t15 & hsa-miR-193b-3p & hsa-miR-365a-3p & 1.0 & 0.0 \\\\\n\t16 & hsa-miR-183-5p & hsa-miR-501-3p & 1.0 & 0.0 \\\\\n\t17 & hsa-miR-182-5p & hsa-miR-96-5p & 1.0 & 0.0 \\\\\n\t18 & hsa-miR-574-5p & hsa-miR-574-3p & 1.0 & 0.0 \\\\\n\t19 & hsa-miR-339-5p & hsa-miR-339-3p & 1.0 & 0.0 \\\\\n\t20 & hsa-miR-3130-1-5p & hsa-miR-3130-2-5p & 1.0 & 0.0 \\\\\n\t21 & hsa-miR-30a-3p & hsa-miR-30a-5p & 1.0 & 0.0 \\\\\n\t22 & hsa-miR-1304-3p & hsa-miR-4482-1-3p & 1.0 & 0.0 \\\\\n\t23 & hsa-miR-550a-2-3p & hsa-miR-550a-2-5p & 1.0 & 0.0 \\\\\n\t24 & hsa-miR-550a-2-3p & hsa-miR-550a-3-5p & 1.0 & 0.0 \\\\\n\t$\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ \\\\\n\\end{tabular}\n"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "11",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "BioFindr computes a [posterior probability](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/) of non-zero correlation for every **Source** and **Target** gene pair. By default the output is sorted by decreasing **Probability** and self-interactions are excluded. The optional parameter **FDR** can be used to limit the output to the set of pairs that has a [global false discovery rate (FDR)](https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure) less than a desired value. The **qvalue** column in the output can be used for further filtering of the output. Say you ran findr with an FRD threshold of 5% as above. If you now want to restrict the output to an FDR threshold of 1%, you can do:"
+            ]
+        },
+        {
+            "id": "12",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "filter!(row -> row.qvalue <= 0.01, dP_mir_all)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "\u001b[1m14682×4 DataFrame\u001b[0m\n\u001b[1m   Row \u001b[0m│\u001b[1m Source            \u001b[0m\u001b[1m Target            \u001b[0m\u001b[1m Probability \u001b[0m\u001b[1m qvalue     \u001b[0m\n\u001b[1m       \u001b[0m│\u001b[90m String            \u001b[0m\u001b[90m String            \u001b[0m\u001b[90m Float64     \u001b[0m\u001b[90m Float64    \u001b[0m\n───────┼───────────────────────────────────────────────────────────────\n     1 │ hsa-miR-574-3p     hsa-miR-574-5p        1.0       0.0\n     2 │ hsa-miR-4482-1-3p  hsa-miR-1304-3p       1.0       0.0\n     3 │ hsa-miR-3667-5p    hsa-miR-3667-3p       1.0       0.0\n     4 │ hsa-miR-550a-2-5p  hsa-miR-550a-2-3p     1.0       0.0\n     5 │ hsa-miR-550a-2-5p  hsa-miR-550a-3-5p     1.0       0.0\n     6 │ hsa-miR-3130-2-5p  hsa-miR-3130-1-5p     1.0       0.0\n     7 │ hsa-let-7b-5p      hsa-let-7b-3p         1.0       0.0\n     8 │ hsa-miR-96-5p      hsa-miR-182-5p        1.0       0.0\n   ⋮   │         ⋮                  ⋮               ⋮           ⋮\n 14676 │ hsa-miR-17-3p      hsa-miR-3940-3p       0.964078  0.00998918\n 14677 │ hsa-miR-484-5p     hsa-miR-92a-1-3p      0.964076  0.00999095\n 14678 │ hsa-miR-652-3p     hsa-miR-100-5p        0.964074  0.00999272\n 14679 │ hsa-miR-378i-5p    hsa-miR-425-3p        0.96407   0.00999448\n 14680 │ hsa-miR-212-3p     hsa-miR-222-5p        0.964061  0.00999625\n 14681 │ hsa-miR-320b-1-3p  hsa-miR-4797-3p       0.964053  0.00999802\n 14682 │ hsa-miR-23a-3p     hsa-miR-7-3-5p        0.964052  0.00999979\n\u001b[36m                                                     14667 rows omitted\u001b[0m",
+                        "text/html": "<div><div style = \"float: left;\"><span>14682×4 DataFrame</span></div><div style = \"float: right; font-style: italic;\"><span>14657 rows omitted</span></div><div style = \"clear: both;\"></div></div><div class = \"data-frame\" style = \"overflow-x: scroll;\"><table class = \"data-frame\" style = \"margin-bottom: 6px;\"><thead><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\">Row</th><th style = \"text-align: left;\">Source</th><th style = \"text-align: left;\">Target</th><th style = \"text-align: left;\">Probability</th><th style = \"text-align: left;\">qvalue</th></tr><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\"></th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th></tr></thead><tbody><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">1</td><td style = \"text-align: left;\">hsa-miR-574-3p</td><td style = \"text-align: left;\">hsa-miR-574-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">2</td><td style = \"text-align: left;\">hsa-miR-4482-1-3p</td><td style = \"text-align: left;\">hsa-miR-1304-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3</td><td style = \"text-align: left;\">hsa-miR-3667-5p</td><td style = \"text-align: left;\">hsa-miR-3667-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">4</td><td style = \"text-align: left;\">hsa-miR-550a-2-5p</td><td style = \"text-align: left;\">hsa-miR-550a-2-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">5</td><td style = \"text-align: left;\">hsa-miR-550a-2-5p</td><td style = \"text-align: left;\">hsa-miR-550a-3-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">6</td><td style = \"text-align: left;\">hsa-miR-3130-2-5p</td><td style = \"text-align: left;\">hsa-miR-3130-1-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">7</td><td style = \"text-align: left;\">hsa-let-7b-5p</td><td style = \"text-align: left;\">hsa-let-7b-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">8</td><td style = \"text-align: left;\">hsa-miR-96-5p</td><td style = \"text-align: left;\">hsa-miR-182-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">9</td><td style = \"text-align: left;\">hsa-miR-96-5p</td><td style = \"text-align: left;\">hsa-miR-1271-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">10</td><td style = \"text-align: left;\">hsa-miR-3667-3p</td><td style = \"text-align: left;\">hsa-miR-3667-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">11</td><td style = \"text-align: left;\">hsa-miR-181c-5p</td><td style = \"text-align: left;\">hsa-miR-181c-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">12</td><td style = \"text-align: left;\">hsa-miR-181c-5p</td><td style = \"text-align: left;\">hsa-miR-181d-5p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">13</td><td style = \"text-align: left;\">hsa-miR-335-5p</td><td style = \"text-align: left;\">hsa-miR-335-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14671</td><td style = \"text-align: left;\">hsa-miR-598-3p</td><td style = \"text-align: left;\">hsa-miR-505-3p</td><td style = \"text-align: right;\">0.964104</td><td style = \"text-align: right;\">0.00998035</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14672</td><td style = \"text-align: left;\">hsa-miR-99b-5p</td><td style = \"text-align: left;\">hsa-miR-1180-3p</td><td style = \"text-align: right;\">0.964099</td><td style = \"text-align: right;\">0.00998211</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14673</td><td style = \"text-align: left;\">hsa-miR-29b-2-3p</td><td style = \"text-align: left;\">hsa-miR-19b-1-3p</td><td style = \"text-align: right;\">0.964094</td><td style = \"text-align: right;\">0.00998388</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14674</td><td style = \"text-align: left;\">hsa-miR-150-3p</td><td style = \"text-align: left;\">hsa-miR-744-5p</td><td style = \"text-align: right;\">0.964081</td><td style = \"text-align: right;\">0.00998565</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14675</td><td style = \"text-align: left;\">hsa-miR-30a-3p</td><td style = \"text-align: left;\">hsa-miR-361-3p</td><td style = \"text-align: right;\">0.964079</td><td style = \"text-align: right;\">0.00998741</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14676</td><td style = \"text-align: left;\">hsa-miR-17-3p</td><td style = \"text-align: left;\">hsa-miR-3940-3p</td><td style = \"text-align: right;\">0.964078</td><td style = \"text-align: right;\">0.00998918</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14677</td><td style = \"text-align: left;\">hsa-miR-484-5p</td><td style = \"text-align: left;\">hsa-miR-92a-1-3p</td><td style = \"text-align: right;\">0.964076</td><td style = \"text-align: right;\">0.00999095</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14678</td><td style = \"text-align: left;\">hsa-miR-652-3p</td><td style = \"text-align: left;\">hsa-miR-100-5p</td><td style = \"text-align: right;\">0.964074</td><td style = \"text-align: right;\">0.00999272</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14679</td><td style = \"text-align: left;\">hsa-miR-378i-5p</td><td style = \"text-align: left;\">hsa-miR-425-3p</td><td style = \"text-align: right;\">0.96407</td><td style = \"text-align: right;\">0.00999448</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14680</td><td style = \"text-align: left;\">hsa-miR-212-3p</td><td style = \"text-align: left;\">hsa-miR-222-5p</td><td style = \"text-align: right;\">0.964061</td><td style = \"text-align: right;\">0.00999625</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14681</td><td style = \"text-align: left;\">hsa-miR-320b-1-3p</td><td style = \"text-align: left;\">hsa-miR-4797-3p</td><td style = \"text-align: right;\">0.964053</td><td style = \"text-align: right;\">0.00999802</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">14682</td><td style = \"text-align: left;\">hsa-miR-23a-3p</td><td style = \"text-align: left;\">hsa-miR-7-3-5p</td><td style = \"text-align: right;\">0.964052</td><td style = \"text-align: right;\">0.00999979</td></tr></tbody></table></div>",
+                        "text/latex": "\\begin{tabular}{r|cccc}\n\t& Source & Target & Probability & qvalue\\\\\n\t\\hline\n\t& String & String & Float64 & Float64\\\\\n\t\\hline\n\t1 & hsa-miR-574-3p & hsa-miR-574-5p & 1.0 & 0.0 \\\\\n\t2 & hsa-miR-4482-1-3p & hsa-miR-1304-3p & 1.0 & 0.0 \\\\\n\t3 & hsa-miR-3667-5p & hsa-miR-3667-3p & 1.0 & 0.0 \\\\\n\t4 & hsa-miR-550a-2-5p & hsa-miR-550a-2-3p & 1.0 & 0.0 \\\\\n\t5 & hsa-miR-550a-2-5p & hsa-miR-550a-3-5p & 1.0 & 0.0 \\\\\n\t6 & hsa-miR-3130-2-5p & hsa-miR-3130-1-5p & 1.0 & 0.0 \\\\\n\t7 & hsa-let-7b-5p & hsa-let-7b-3p & 1.0 & 0.0 \\\\\n\t8 & hsa-miR-96-5p & hsa-miR-182-5p & 1.0 & 0.0 \\\\\n\t9 & hsa-miR-96-5p & hsa-miR-1271-5p & 1.0 & 0.0 \\\\\n\t10 & hsa-miR-3667-3p & hsa-miR-3667-5p & 1.0 & 0.0 \\\\\n\t11 & hsa-miR-181c-5p & hsa-miR-181c-3p & 1.0 & 0.0 \\\\\n\t12 & hsa-miR-181c-5p & hsa-miR-181d-5p & 1.0 & 0.0 \\\\\n\t13 & hsa-miR-335-5p & hsa-miR-335-3p & 1.0 & 0.0 \\\\\n\t14 & hsa-miR-30a-5p & hsa-miR-30a-3p & 1.0 & 0.0 \\\\\n\t15 & hsa-miR-193b-3p & hsa-miR-365a-3p & 1.0 & 0.0 \\\\\n\t16 & hsa-miR-183-5p & hsa-miR-501-3p & 1.0 & 0.0 \\\\\n\t17 & hsa-miR-182-5p & hsa-miR-96-5p & 1.0 & 0.0 \\\\\n\t18 & hsa-miR-574-5p & hsa-miR-574-3p & 1.0 & 0.0 \\\\\n\t19 & hsa-miR-339-5p & hsa-miR-339-3p & 1.0 & 0.0 \\\\\n\t20 & hsa-miR-3130-1-5p & hsa-miR-3130-2-5p & 1.0 & 0.0 \\\\\n\t21 & hsa-miR-30a-3p & hsa-miR-30a-5p & 1.0 & 0.0 \\\\\n\t22 & hsa-miR-1304-3p & hsa-miR-4482-1-3p & 1.0 & 0.0 \\\\\n\t23 & hsa-miR-550a-2-3p & hsa-miR-550a-2-5p & 1.0 & 0.0 \\\\\n\t24 & hsa-miR-550a-2-3p & hsa-miR-550a-3-5p & 1.0 & 0.0 \\\\\n\t$\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ \\\\\n\\end{tabular}\n"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "13",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "Note that the [`filter!`](https://dataframes.juliadata.org/stable/lib/functions/#Base.filter!) command modifies the input DataFrame in-place, that is, the rows not matching the selection criteria are deleted. Use [`filter`](https://dataframes.juliadata.org/stable/lib/functions/#Base.filter) to return a new DataFrame with the selected rows.\n",
+                "\n",
+                "Finally, remember that the output of coexpression analysis in BioFindr is *not* symmetric, that is\n",
+                "\n",
+                "$$\n",
+                "P(Source, Target) \\neq P(Target, Source)\n",
+                "$$\n",
+                "\n",
+                "This is because the posterior probabilities are estimated using a Source-specific background distribution, accounting for the fact that different genes may have a different number of non-null interaction partners *a priori*. See the [Findr paper][5] for details.\n",
+                "\n",
+                "### Bipartite coexpression analysis\n",
+                "\n",
+                "Since BioFindr's posterior probabilities are Source gene-specific, we may be interested in computing probabilities only for a subset of Source genes, or using different Source and Target gene sets. \n",
+                "\n",
+                "As an example of the first scenario, assume we are interested in finding microRNAs that are significantly correlated with microRNAs from the [Mir-200 family](https://en.wikipedia.org/wiki/Mir-200). First find the Mir-200 microRNAs:"
+            ]
+        },
+        {
+            "id": "14",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "mir200 = names(dm)[startswith.(names(dm),\"hsa-miR-200\")]"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "3-element Vector{String}:\n \"hsa-miR-200b-3p\"\n \"hsa-miR-200a-3p\"\n \"hsa-miR-200c-3p\""
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "15",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "Then run"
+            ]
+        },
+        {
+            "id": "16",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP_mir200_mir = findr(dm, colnames=mir200, FDR=0.01)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "\u001b[1m48×4 DataFrame\u001b[0m\n\u001b[1m Row \u001b[0m│\u001b[1m Source          \u001b[0m\u001b[1m Target          \u001b[0m\u001b[1m Probability \u001b[0m\u001b[1m qvalue      \u001b[0m\n\u001b[1m     \u001b[0m│\u001b[90m String          \u001b[0m\u001b[90m String          \u001b[0m\u001b[90m Float64     \u001b[0m\u001b[90m Float64     \u001b[0m\n─────┼────────────────────────────────────────────────────────────\n   1 │ hsa-miR-200b-3p  hsa-miR-200a-3p     1.0       2.0303e-10\n   2 │ hsa-miR-200a-3p  hsa-miR-200b-3p     1.0       2.37622e-10\n   3 │ hsa-miR-200c-3p  hsa-miR-93-5p       0.999999  2.26212e-7\n   4 │ hsa-miR-200c-3p  hsa-miR-140-3p      0.999991  2.36372e-6\n   5 │ hsa-miR-200b-3p  hsa-miR-429-3p      0.999927  1.65171e-5\n   6 │ hsa-miR-200c-3p  hsa-miR-16-1-5p     0.999845  3.95838e-5\n   7 │ hsa-miR-200c-3p  hsa-miR-664-3p      0.999839  5.69759e-5\n   8 │ hsa-miR-200c-3p  hsa-miR-17-5p       0.999719  8.50297e-5\n  ⋮  │        ⋮                ⋮              ⋮            ⋮\n  42 │ hsa-miR-200b-3p  hsa-miR-9-1-5p      0.980766  0.00781\n  43 │ hsa-miR-200c-3p  hsa-miR-4677-3p     0.980721  0.00807672\n  44 │ hsa-miR-200c-3p  hsa-miR-141-5p      0.979668  0.00835524\n  45 │ hsa-miR-200c-3p  hsa-miR-30e-3p      0.979068  0.00863472\n  46 │ hsa-miR-200b-3p  hsa-miR-93-5p       0.973906  0.00901427\n  47 │ hsa-miR-200c-3p  hsa-miR-25-3p       0.972582  0.00940584\n  48 │ hsa-miR-200c-3p  hsa-miR-4521-5p     0.972378  0.00978535\n\u001b[36m                                                   33 rows omitted\u001b[0m",
+                        "text/html": "<div><div style = \"float: left;\"><span>48×4 DataFrame</span></div><div style = \"float: right; font-style: italic;\"><span>23 rows omitted</span></div><div style = \"clear: both;\"></div></div><div class = \"data-frame\" style = \"overflow-x: scroll;\"><table class = \"data-frame\" style = \"margin-bottom: 6px;\"><thead><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\">Row</th><th style = \"text-align: left;\">Source</th><th style = \"text-align: left;\">Target</th><th style = \"text-align: left;\">Probability</th><th style = \"text-align: left;\">qvalue</th></tr><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\"></th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th></tr></thead><tbody><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">1</td><td style = \"text-align: left;\">hsa-miR-200b-3p</td><td style = \"text-align: left;\">hsa-miR-200a-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">2.0303e-10</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">2</td><td style = \"text-align: left;\">hsa-miR-200a-3p</td><td style = \"text-align: left;\">hsa-miR-200b-3p</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">2.37622e-10</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-93-5p</td><td style = \"text-align: right;\">0.999999</td><td style = \"text-align: right;\">2.26212e-7</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">4</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-140-3p</td><td style = \"text-align: right;\">0.999991</td><td style = \"text-align: right;\">2.36372e-6</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">5</td><td style = \"text-align: left;\">hsa-miR-200b-3p</td><td style = \"text-align: left;\">hsa-miR-429-3p</td><td style = \"text-align: right;\">0.999927</td><td style = \"text-align: right;\">1.65171e-5</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">6</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-16-1-5p</td><td style = \"text-align: right;\">0.999845</td><td style = \"text-align: right;\">3.95838e-5</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">7</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-664-3p</td><td style = \"text-align: right;\">0.999839</td><td style = \"text-align: right;\">5.69759e-5</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">8</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-17-5p</td><td style = \"text-align: right;\">0.999719</td><td style = \"text-align: right;\">8.50297e-5</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">9</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-769-5p</td><td style = \"text-align: right;\">0.999366</td><td style = \"text-align: right;\">0.000146048</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">10</td><td style = \"text-align: left;\">hsa-miR-200b-3p</td><td style = \"text-align: left;\">hsa-miR-582-3p</td><td style = \"text-align: right;\">0.999286</td><td style = \"text-align: right;\">0.000202888</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">11</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-130b-5p</td><td style = \"text-align: right;\">0.999273</td><td style = \"text-align: right;\">0.000250569</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">12</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-425-5p</td><td style = \"text-align: right;\">0.999193</td><td style = \"text-align: right;\">0.000296912</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">13</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-103a-2-3p</td><td style = \"text-align: right;\">0.999146</td><td style = \"text-align: right;\">0.00033977</td></tr><tr><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">37</td><td style = \"text-align: left;\">hsa-miR-200a-3p</td><td style = \"text-align: left;\">hsa-miR-3667-3p</td><td style = \"text-align: right;\">0.983748</td><td style = \"text-align: right;\">0.00636739</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">38</td><td style = \"text-align: left;\">hsa-miR-200b-3p</td><td style = \"text-align: left;\">hsa-miR-26b-5p</td><td style = \"text-align: right;\">0.982875</td><td style = \"text-align: right;\">0.00665048</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">39</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-619-5p</td><td style = \"text-align: right;\">0.982006</td><td style = \"text-align: right;\">0.00694135</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">40</td><td style = \"text-align: left;\">hsa-miR-200b-3p</td><td style = \"text-align: left;\">hsa-miR-328-3p</td><td style = \"text-align: right;\">0.98103</td><td style = \"text-align: right;\">0.00724207</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">41</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-500a-5p</td><td style = \"text-align: right;\">0.980897</td><td style = \"text-align: right;\">0.00753137</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">42</td><td style = \"text-align: left;\">hsa-miR-200b-3p</td><td style = \"text-align: left;\">hsa-miR-9-1-5p</td><td style = \"text-align: right;\">0.980766</td><td style = \"text-align: right;\">0.00781</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">43</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-4677-3p</td><td style = \"text-align: right;\">0.980721</td><td style = \"text-align: right;\">0.00807672</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">44</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-141-5p</td><td style = \"text-align: right;\">0.979668</td><td style = \"text-align: right;\">0.00835524</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">45</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-30e-3p</td><td style = \"text-align: right;\">0.979068</td><td style = \"text-align: right;\">0.00863472</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">46</td><td style = \"text-align: left;\">hsa-miR-200b-3p</td><td style = \"text-align: left;\">hsa-miR-93-5p</td><td style = \"text-align: right;\">0.973906</td><td style = \"text-align: right;\">0.00901427</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">47</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-25-3p</td><td style = \"text-align: right;\">0.972582</td><td style = \"text-align: right;\">0.00940584</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">48</td><td style = \"text-align: left;\">hsa-miR-200c-3p</td><td style = \"text-align: left;\">hsa-miR-4521-5p</td><td style = \"text-align: right;\">0.972378</td><td style = \"text-align: right;\">0.00978535</td></tr></tbody></table></div>",
+                        "text/latex": "\\begin{tabular}{r|cccc}\n\t& Source & Target & Probability & qvalue\\\\\n\t\\hline\n\t& String & String & Float64 & Float64\\\\\n\t\\hline\n\t1 & hsa-miR-200b-3p & hsa-miR-200a-3p & 1.0 & 2.0303e-10 \\\\\n\t2 & hsa-miR-200a-3p & hsa-miR-200b-3p & 1.0 & 2.37622e-10 \\\\\n\t3 & hsa-miR-200c-3p & hsa-miR-93-5p & 0.999999 & 2.26212e-7 \\\\\n\t4 & hsa-miR-200c-3p & hsa-miR-140-3p & 0.999991 & 2.36372e-6 \\\\\n\t5 & hsa-miR-200b-3p & hsa-miR-429-3p & 0.999927 & 1.65171e-5 \\\\\n\t6 & hsa-miR-200c-3p & hsa-miR-16-1-5p & 0.999845 & 3.95838e-5 \\\\\n\t7 & hsa-miR-200c-3p & hsa-miR-664-3p & 0.999839 & 5.69759e-5 \\\\\n\t8 & hsa-miR-200c-3p & hsa-miR-17-5p & 0.999719 & 8.50297e-5 \\\\\n\t9 & hsa-miR-200c-3p & hsa-miR-769-5p & 0.999366 & 0.000146048 \\\\\n\t10 & hsa-miR-200b-3p & hsa-miR-582-3p & 0.999286 & 0.000202888 \\\\\n\t11 & hsa-miR-200c-3p & hsa-miR-130b-5p & 0.999273 & 0.000250569 \\\\\n\t12 & hsa-miR-200c-3p & hsa-miR-425-5p & 0.999193 & 0.000296912 \\\\\n\t13 & hsa-miR-200c-3p & hsa-miR-103a-2-3p & 0.999146 & 0.00033977 \\\\\n\t14 & hsa-miR-200c-3p & hsa-miR-106b-3p & 0.999075 & 0.00038156 \\\\\n\t15 & hsa-miR-200c-3p & hsa-miR-103a-1-3p & 0.999049 & 0.000419531 \\\\\n\t16 & hsa-miR-200c-3p & hsa-miR-93-3p & 0.998508 & 0.000486591 \\\\\n\t17 & hsa-miR-200c-3p & hsa-miR-1307-3p & 0.998043 & 0.000573101 \\\\\n\t18 & hsa-miR-200c-3p & hsa-miR-598-3p & 0.996097 & 0.000758095 \\\\\n\t19 & hsa-miR-200b-3p & hsa-miR-16-1-5p & 0.994557 & 0.00100465 \\\\\n\t20 & hsa-miR-200c-3p & hsa-miR-378a-5p & 0.993159 & 0.00129647 \\\\\n\t21 & hsa-miR-200b-3p & hsa-miR-425-3p & 0.992809 & 0.00157716 \\\\\n\t22 & hsa-miR-200a-3p & hsa-miR-425-5p & 0.992285 & 0.00185615 \\\\\n\t23 & hsa-miR-200b-3p & hsa-miR-17-5p & 0.989451 & 0.0022341 \\\\\n\t24 & hsa-miR-200c-3p & hsa-miR-3159-5p & 0.98931 & 0.00258641 \\\\\n\t$\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ \\\\\n\\end{tabular}\n"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "17",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "The parameter **colnames** must be a vector of strings containing a subset of variable names of the input DataFrame **dm** to be used as **Source** genes.\n",
+                "\n",
+                "As an example of the second scenario, we may be interested in finding genes that are significantly correlated with all or a subset of microRNAs:"
+            ]
+        },
+        {
+            "id": "18",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP_mir_mrna = findr(dt, dm, FDR=0.01)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "\u001b[1m49499×4 DataFrame\u001b[0m\n\u001b[1m   Row \u001b[0m│\u001b[1m Source           \u001b[0m\u001b[1m Target     \u001b[0m\u001b[1m Probability \u001b[0m\u001b[1m qvalue     \u001b[0m\n\u001b[1m       \u001b[0m│\u001b[90m String           \u001b[0m\u001b[90m String     \u001b[0m\u001b[90m Float64     \u001b[0m\u001b[90m Float64    \u001b[0m\n───────┼───────────────────────────────────────────────────────\n     1 │ hsa-miR-3150b-3p  MIR3150BHG     1.0       0.0\n     2 │ hsa-miR-3150b-3p  PLEKHF2        1.0       0.0\n     3 │ hsa-let-7b-5p     MIRLET7BHG     1.0       0.0\n     4 │ hsa-let-7b-5p     PRR34          1.0       0.0\n     5 │ hsa-let-7b-5p     PRR34-AS1      1.0       0.0\n     6 │ hsa-miR-335-5p    CPA4           1.0       0.0\n     7 │ hsa-miR-335-5p    MESTP1         1.0       0.0\n     8 │ hsa-miR-618-5p    LIN7A          1.0       0.0\n   ⋮   │        ⋮              ⋮            ⋮           ⋮\n 49493 │ hsa-miR-21-3p     ITPRID2-DT     0.973471  0.0099977\n 49494 │ hsa-miR-181c-3p   EXOSC10        0.97347   0.00999804\n 49495 │ hsa-miR-151a-3p   ZNF664         0.973469  0.00999837\n 49496 │ hsa-miR-671-3p    GRINA          0.973468  0.00999871\n 49497 │ hsa-miR-25-5p     VANGL2         0.973467  0.00999904\n 49498 │ hsa-miR-22-3p     LILRB4         0.973466  0.00999937\n 49499 │ hsa-miR-125a-5p   POLD4          0.973465  0.00999971\n\u001b[36m                                             49484 rows omitted\u001b[0m",
+                        "text/html": "<div><div style = \"float: left;\"><span>49499×4 DataFrame</span></div><div style = \"float: right; font-style: italic;\"><span>49474 rows omitted</span></div><div style = \"clear: both;\"></div></div><div class = \"data-frame\" style = \"overflow-x: scroll;\"><table class = \"data-frame\" style = \"margin-bottom: 6px;\"><thead><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\">Row</th><th style = \"text-align: left;\">Source</th><th style = \"text-align: left;\">Target</th><th style = \"text-align: left;\">Probability</th><th style = \"text-align: left;\">qvalue</th></tr><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\"></th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th></tr></thead><tbody><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">1</td><td style = \"text-align: left;\">hsa-miR-3150b-3p</td><td style = \"text-align: left;\">MIR3150BHG</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">2</td><td style = \"text-align: left;\">hsa-miR-3150b-3p</td><td style = \"text-align: left;\">PLEKHF2</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3</td><td style = \"text-align: left;\">hsa-let-7b-5p</td><td style = \"text-align: left;\">MIRLET7BHG</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">4</td><td style = \"text-align: left;\">hsa-let-7b-5p</td><td style = \"text-align: left;\">PRR34</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">5</td><td style = \"text-align: left;\">hsa-let-7b-5p</td><td style = \"text-align: left;\">PRR34-AS1</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">6</td><td style = \"text-align: left;\">hsa-miR-335-5p</td><td style = \"text-align: left;\">CPA4</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">7</td><td style = \"text-align: left;\">hsa-miR-335-5p</td><td style = \"text-align: left;\">MESTP1</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">8</td><td style = \"text-align: left;\">hsa-miR-618-5p</td><td style = \"text-align: left;\">LIN7A</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">9</td><td style = \"text-align: left;\">hsa-miR-335-3p</td><td style = \"text-align: left;\">CPA4</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">10</td><td style = \"text-align: left;\">hsa-miR-335-3p</td><td style = \"text-align: left;\">MESTP1</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">11</td><td style = \"text-align: left;\">hsa-let-7b-3p</td><td style = \"text-align: left;\">PRR34-AS1</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">12</td><td style = \"text-align: left;\">hsa-miR-10a-5p</td><td style = \"text-align: left;\">HOXB3</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">13</td><td style = \"text-align: left;\">hsa-miR-143-3p</td><td style = \"text-align: left;\">ALDH1L1</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">0.0</td></tr><tr><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49488</td><td style = \"text-align: left;\">hsa-miR-577-5p</td><td style = \"text-align: left;\">PEBP1</td><td style = \"text-align: right;\">0.973475</td><td style = \"text-align: right;\">0.00999603</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49489</td><td style = \"text-align: left;\">hsa-miR-193b-5p</td><td style = \"text-align: left;\">DTL</td><td style = \"text-align: right;\">0.973474</td><td style = \"text-align: right;\">0.00999637</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49490</td><td style = \"text-align: left;\">hsa-miR-944-3p</td><td style = \"text-align: left;\">RAPGEF2</td><td style = \"text-align: right;\">0.973473</td><td style = \"text-align: right;\">0.0099967</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49491</td><td style = \"text-align: left;\">hsa-miR-664-3p</td><td style = \"text-align: left;\">RPS7P10</td><td style = \"text-align: right;\">0.973473</td><td style = \"text-align: right;\">0.00999704</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49492</td><td style = \"text-align: left;\">hsa-miR-193a-5p</td><td style = \"text-align: left;\">RPL12P13</td><td style = \"text-align: right;\">0.973471</td><td style = \"text-align: right;\">0.00999737</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49493</td><td style = \"text-align: left;\">hsa-miR-21-3p</td><td style = \"text-align: left;\">ITPRID2-DT</td><td style = \"text-align: right;\">0.973471</td><td style = \"text-align: right;\">0.0099977</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49494</td><td style = \"text-align: left;\">hsa-miR-181c-3p</td><td style = \"text-align: left;\">EXOSC10</td><td style = \"text-align: right;\">0.97347</td><td style = \"text-align: right;\">0.00999804</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49495</td><td style = \"text-align: left;\">hsa-miR-151a-3p</td><td style = \"text-align: left;\">ZNF664</td><td style = \"text-align: right;\">0.973469</td><td style = \"text-align: right;\">0.00999837</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49496</td><td style = \"text-align: left;\">hsa-miR-671-3p</td><td style = \"text-align: left;\">GRINA</td><td style = \"text-align: right;\">0.973468</td><td style = \"text-align: right;\">0.00999871</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49497</td><td style = \"text-align: left;\">hsa-miR-25-5p</td><td style = \"text-align: left;\">VANGL2</td><td style = \"text-align: right;\">0.973467</td><td style = \"text-align: right;\">0.00999904</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49498</td><td style = \"text-align: left;\">hsa-miR-22-3p</td><td style = \"text-align: left;\">LILRB4</td><td style = \"text-align: right;\">0.973466</td><td style = \"text-align: right;\">0.00999937</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">49499</td><td style = \"text-align: left;\">hsa-miR-125a-5p</td><td style = \"text-align: left;\">POLD4</td><td style = \"text-align: right;\">0.973465</td><td style = \"text-align: right;\">0.00999971</td></tr></tbody></table></div>",
+                        "text/latex": "\\begin{tabular}{r|cccc}\n\t& Source & Target & Probability & qvalue\\\\\n\t\\hline\n\t& String & String & Float64 & Float64\\\\\n\t\\hline\n\t1 & hsa-miR-3150b-3p & MIR3150BHG & 1.0 & 0.0 \\\\\n\t2 & hsa-miR-3150b-3p & PLEKHF2 & 1.0 & 0.0 \\\\\n\t3 & hsa-let-7b-5p & MIRLET7BHG & 1.0 & 0.0 \\\\\n\t4 & hsa-let-7b-5p & PRR34 & 1.0 & 0.0 \\\\\n\t5 & hsa-let-7b-5p & PRR34-AS1 & 1.0 & 0.0 \\\\\n\t6 & hsa-miR-335-5p & CPA4 & 1.0 & 0.0 \\\\\n\t7 & hsa-miR-335-5p & MESTP1 & 1.0 & 0.0 \\\\\n\t8 & hsa-miR-618-5p & LIN7A & 1.0 & 0.0 \\\\\n\t9 & hsa-miR-335-3p & CPA4 & 1.0 & 0.0 \\\\\n\t10 & hsa-miR-335-3p & MESTP1 & 1.0 & 0.0 \\\\\n\t11 & hsa-let-7b-3p & PRR34-AS1 & 1.0 & 0.0 \\\\\n\t12 & hsa-miR-10a-5p & HOXB3 & 1.0 & 0.0 \\\\\n\t13 & hsa-miR-143-3p & ALDH1L1 & 1.0 & 0.0 \\\\\n\t14 & hsa-miR-151a-3p & PTK2 & 1.0 & 0.0 \\\\\n\t15 & hsa-miR-151a-5p & PTK2 & 1.0 & 0.0 \\\\\n\t16 & hsa-miR-151b-3p & PTK2 & 1.0 & 0.0 \\\\\n\t17 & hsa-miR-152-3p & COPZ2 & 1.0 & 0.0 \\\\\n\t18 & hsa-miR-181a-2-3p & GPR82 & 1.0 & 0.0 \\\\\n\t19 & hsa-miR-181a-2-3p & MIR181A2HG & 1.0 & 0.0 \\\\\n\t20 & hsa-miR-1910-5p & C16orf74 & 1.0 & 0.0 \\\\\n\t21 & hsa-miR-196a-1-5p & LINC02086 & 1.0 & 0.0 \\\\\n\t22 & hsa-miR-196a-1-5p & HOXB7 & 1.0 & 0.0 \\\\\n\t23 & hsa-miR-196a-2-5p & LINC02086 & 1.0 & 0.0 \\\\\n\t24 & hsa-miR-196a-2-5p & HOXB7 & 1.0 & 0.0 \\\\\n\t$\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ \\\\\n\\end{tabular}\n"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "19",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "Note the order of the arguments: here we tested all microRNAs as $A$ or Source genes (`dm` argument) against all mRNA transcripts as $B$ or Target genes (`dt` argument), that is, background distributions are fitted for each microRNA (column of `dm`) from the log-likelihood ratios for all 23,722 mRNAs (columns of `dt`).\n",
+                "\n",
+                "[1]: https://github.com/tmichoel/BioFindr.jl\n",
+                "[2]: https://github.com/lingfeiwang/findr-data-geuvadis\n",
+                "[3]: https://doi.org/10.1038/nature12531\n",
+                "[4]: https://dataframes.juliadata.org/stable/\n",
+                "[5]: https://doi.org/10.1371/journal.pcbi.1005703"
+            ]
+        }
+    ],
+    "timestamp": "2026-06-05T19:38:25.422",
+    "file": "/home/tom/Repositories/teaching/BioFindrTutorials/coexpression.qmd",
+    "qnr_schema_version": "1.0.0"
+}

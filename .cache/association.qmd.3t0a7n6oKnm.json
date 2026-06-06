@@ -1,0 +1,159 @@
+{
+    "cells": [
+        {
+            "id": "1",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "---\n",
+                "title: \"Association analysis\"\n",
+                "format:\n",
+                "  html:\n",
+                "    code-fold: false\n",
+                "engine: julia\n",
+                "execute: \n",
+                "  cache: true\n",
+                "  keep-ipynb: true\n",
+                "---\n",
+                "## Introduction\n",
+                "\n",
+                "While [BioFindr][1] is developed primarily for causal inference from genomics and transcriptomics data, association analysis between genomics and transcriptomics data is also possible. In association analysis, genetic effects on the transcriptome are measured by testing if genes are differentially expressed in different groups of samples defined by the genotype of a genetic variant of interest. In [BioFindr][1], significance of association is computed using a [categorical model](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR) and a variant-specific background distribution. Similar to what was done in the [coexpression analysis tutorial](coexpression.qmd), this is achieved by modelling the distribution of association values between a given variant $A$ and all genes $B$ as a [mixture distribution](https://en.wikipedia.org/wiki/Mixture_distribution) of real and null (random) associations. The relative weight of each component then reflects the prior probability of finding a non-null $B$ gene for a given variant $A$, and is fitted for every $A$ separately.\n",
+                "\n",
+                "We will illustrate how to run association analysis with [BioFindr][1] using [preprocessed data][2] from the [GEUVADIS study][3]. See the [installation instructions](installation.qmd) for the steps you need to take to reproduce this tutorial.\n",
+                "\n",
+                "## Set up the environment\n",
+                "\n",
+                "We begin by setting up the environment and loading some necessary packages."
+            ]
+        },
+        {
+            "id": "2",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "using DrWatson\n",
+                "using DataFrames\n",
+                "using Arrow\n",
+                "\n",
+                "using BioFindr"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "3",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "## Load data\n",
+                "\n",
+                "### Expression data\n",
+                "\n",
+                "[BioFindr][1] expects that expression data are stored as [floating-point numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genes) and rows to samples, see the [coexpression analysis tutorial](coexpression.qmd) for more details.\n",
+                "\n",
+                "This tutorial uses two tables of expression data from the same set of samples, one for mRNA expression data called `dt`, and one for microRNA (miRNA) expression data called `dm`:"
+            ]
+        },
+        {
+            "id": "4",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dt = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dt.arrow\")));\n",
+                "dm = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dm.arrow\")));"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "5",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "### Genotype data\n",
+                "\n",
+                "[BioFindr][1] expects that genotype data are stored as [integer numbers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/) in a [DataFrame][4] where columns correspond to variables (genetic variants) and rows to samples. Since [BioFindr][1] uses a [categorical association model](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/#prim_test_realLLR), it does not matter how different genotypes (e.g. heterozygous vs. homozygous) are encoded as integers. Future versions will support [scientific types](https://juliaai.github.io/ScientificTypes.jl/dev/) for representing genotype data.\n",
+                "\n",
+                "This tutorial uses two tables of genotype data from the same set of samples as the expression data, one with genotypes for mRNA eQTLs called `dgt`, and one for microRNA (miRNA) eQTLs called `dgm`:"
+            ]
+        },
+        {
+            "id": "6",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dgt = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dgt.arrow\")));\n",
+                "dgm = DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dgm.arrow\")));"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "7",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "## Run BioFindr\n",
+                "\n",
+                "Assume we are interested in identifying mRNA genes whose expression levels are associated to microRNA eQTLs. We run:"
+            ]
+        },
+        {
+            "id": "8",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "dP = findr(dt, dgm, FDR=0.05)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "\u001b[1m28×4 DataFrame\u001b[0m\n\u001b[1m Row \u001b[0m│\u001b[1m Source     \u001b[0m\u001b[1m Target    \u001b[0m\u001b[1m Probability \u001b[0m\u001b[1m qvalue     \u001b[0m\n\u001b[1m     \u001b[0m│\u001b[90m String     \u001b[0m\u001b[90m String    \u001b[0m\u001b[90m Float64     \u001b[0m\u001b[90m Float64    \u001b[0m\n─────┼────────────────────────────────────────────────\n   1 │ rs768533    MDH1B         1.0       5.95578e-9\n   2 │ rs768533_1  MDH1B         1.0       5.95578e-9\n   3 │ rs73236618  TLR6          1.0       1.61902e-7\n   4 │ rs5743580   TLR6          0.999999  2.59411e-7\n   5 │ rs73236618  TLR1          0.999999  4.82133e-7\n   6 │ rs5743580   TLR1          0.999998  7.52003e-7\n   7 │ rs1059264   SLC25A29      0.999814  2.72175e-5\n   8 │ rs3744749   PRR34-AS1     0.999749  5.51865e-5\n  ⋮  │     ⋮           ⋮           ⋮           ⋮\n  22 │ rs768533_1  CD19          0.911178  0.0341311\n  23 │ rs4926170   ZFP64         0.900374  0.0369787\n  24 │ rs73054305  GIPR          0.89784   0.0396946\n  25 │ rs768533    GBF1          0.892085  0.0424234\n  26 │ rs768533_1  GBF1          0.892085  0.0449423\n  27 │ rs768533    ATP5F1A       0.891861  0.0472829\n  28 │ rs768533_1  ATP5F1A       0.891861  0.0494564\n\u001b[36m                                       13 rows omitted\u001b[0m",
+                        "text/html": "<div><div style = \"float: left;\"><span>28×4 DataFrame</span></div><div style = \"float: right; font-style: italic;\"><span>3 rows omitted</span></div><div style = \"clear: both;\"></div></div><div class = \"data-frame\" style = \"overflow-x: scroll;\"><table class = \"data-frame\" style = \"margin-bottom: 6px;\"><thead><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\">Row</th><th style = \"text-align: left;\">Source</th><th style = \"text-align: left;\">Target</th><th style = \"text-align: left;\">Probability</th><th style = \"text-align: left;\">qvalue</th></tr><tr class = \"columnLabelRow\"><th class = \"stubheadLabel\" style = \"font-weight: bold; text-align: right;\"></th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"String\" style = \"text-align: left;\">String</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th><th title = \"Float64\" style = \"text-align: left;\">Float64</th></tr></thead><tbody><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">1</td><td style = \"text-align: left;\">rs768533</td><td style = \"text-align: left;\">MDH1B</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">5.95578e-9</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">2</td><td style = \"text-align: left;\">rs768533_1</td><td style = \"text-align: left;\">MDH1B</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">5.95578e-9</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">3</td><td style = \"text-align: left;\">rs73236618</td><td style = \"text-align: left;\">TLR6</td><td style = \"text-align: right;\">1.0</td><td style = \"text-align: right;\">1.61902e-7</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">4</td><td style = \"text-align: left;\">rs5743580</td><td style = \"text-align: left;\">TLR6</td><td style = \"text-align: right;\">0.999999</td><td style = \"text-align: right;\">2.59411e-7</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">5</td><td style = \"text-align: left;\">rs73236618</td><td style = \"text-align: left;\">TLR1</td><td style = \"text-align: right;\">0.999999</td><td style = \"text-align: right;\">4.82133e-7</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">6</td><td style = \"text-align: left;\">rs5743580</td><td style = \"text-align: left;\">TLR1</td><td style = \"text-align: right;\">0.999998</td><td style = \"text-align: right;\">7.52003e-7</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">7</td><td style = \"text-align: left;\">rs1059264</td><td style = \"text-align: left;\">SLC25A29</td><td style = \"text-align: right;\">0.999814</td><td style = \"text-align: right;\">2.72175e-5</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">8</td><td style = \"text-align: left;\">rs3744749</td><td style = \"text-align: left;\">PRR34-AS1</td><td style = \"text-align: right;\">0.999749</td><td style = \"text-align: right;\">5.51865e-5</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">9</td><td style = \"text-align: left;\">rs5743580</td><td style = \"text-align: left;\">TLR10</td><td style = \"text-align: right;\">0.999688</td><td style = \"text-align: right;\">8.37096e-5</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">10</td><td style = \"text-align: left;\">rs73236618</td><td style = \"text-align: left;\">TLR10</td><td style = \"text-align: right;\">0.999666</td><td style = \"text-align: right;\">0.00010875</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">11</td><td style = \"text-align: left;\">rs73236618</td><td style = \"text-align: left;\">FAM114A1</td><td style = \"text-align: right;\">0.999349</td><td style = \"text-align: right;\">0.000158079</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">12</td><td style = \"text-align: left;\">rs5743580</td><td style = \"text-align: left;\">FAM114A1</td><td style = \"text-align: right;\">0.999102</td><td style = \"text-align: right;\">0.000219725</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">13</td><td style = \"text-align: left;\">rs3744749</td><td style = \"text-align: left;\">MIRLET7BHG</td><td style = \"text-align: right;\">0.998505</td><td style = \"text-align: right;\">0.000317786</td></tr><tr><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: left;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td><td style = \"text-align: right;\">&vellip;</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">17</td><td style = \"text-align: left;\">rs768533</td><td style = \"text-align: left;\">TMEM60</td><td style = \"text-align: right;\">0.917629</td><td style = \"text-align: right;\">0.0186698</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">18</td><td style = \"text-align: left;\">rs768533_1</td><td style = \"text-align: left;\">TMEM60</td><td style = \"text-align: right;\">0.917629</td><td style = \"text-align: right;\">0.0222088</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">19</td><td style = \"text-align: left;\">rs768533</td><td style = \"text-align: left;\">TOR3A</td><td style = \"text-align: right;\">0.913258</td><td style = \"text-align: right;\">0.0256053</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">20</td><td style = \"text-align: left;\">rs768533_1</td><td style = \"text-align: left;\">TOR3A</td><td style = \"text-align: right;\">0.913258</td><td style = \"text-align: right;\">0.0286621</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">21</td><td style = \"text-align: left;\">rs768533</td><td style = \"text-align: left;\">CD19</td><td style = \"text-align: right;\">0.911178</td><td style = \"text-align: right;\">0.0315268</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">22</td><td style = \"text-align: left;\">rs768533_1</td><td style = \"text-align: left;\">CD19</td><td style = \"text-align: right;\">0.911178</td><td style = \"text-align: right;\">0.0341311</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">23</td><td style = \"text-align: left;\">rs4926170</td><td style = \"text-align: left;\">ZFP64</td><td style = \"text-align: right;\">0.900374</td><td style = \"text-align: right;\">0.0369787</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">24</td><td style = \"text-align: left;\">rs73054305</td><td style = \"text-align: left;\">GIPR</td><td style = \"text-align: right;\">0.89784</td><td style = \"text-align: right;\">0.0396946</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">25</td><td style = \"text-align: left;\">rs768533</td><td style = \"text-align: left;\">GBF1</td><td style = \"text-align: right;\">0.892085</td><td style = \"text-align: right;\">0.0424234</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">26</td><td style = \"text-align: left;\">rs768533_1</td><td style = \"text-align: left;\">GBF1</td><td style = \"text-align: right;\">0.892085</td><td style = \"text-align: right;\">0.0449423</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">27</td><td style = \"text-align: left;\">rs768533</td><td style = \"text-align: left;\">ATP5F1A</td><td style = \"text-align: right;\">0.891861</td><td style = \"text-align: right;\">0.0472829</td></tr><tr class = \"dataRow\"><td class = \"rowLabel\" style = \"font-weight: bold; text-align: right;\">28</td><td style = \"text-align: left;\">rs768533_1</td><td style = \"text-align: left;\">ATP5F1A</td><td style = \"text-align: right;\">0.891861</td><td style = \"text-align: right;\">0.0494564</td></tr></tbody></table></div>",
+                        "text/latex": "\\begin{tabular}{r|cccc}\n\t& Source & Target & Probability & qvalue\\\\\n\t\\hline\n\t& String & String & Float64 & Float64\\\\\n\t\\hline\n\t1 & rs768533 & MDH1B & 1.0 & 5.95578e-9 \\\\\n\t2 & rs768533\\_1 & MDH1B & 1.0 & 5.95578e-9 \\\\\n\t3 & rs73236618 & TLR6 & 1.0 & 1.61902e-7 \\\\\n\t4 & rs5743580 & TLR6 & 0.999999 & 2.59411e-7 \\\\\n\t5 & rs73236618 & TLR1 & 0.999999 & 4.82133e-7 \\\\\n\t6 & rs5743580 & TLR1 & 0.999998 & 7.52003e-7 \\\\\n\t7 & rs1059264 & SLC25A29 & 0.999814 & 2.72175e-5 \\\\\n\t8 & rs3744749 & PRR34-AS1 & 0.999749 & 5.51865e-5 \\\\\n\t9 & rs5743580 & TLR10 & 0.999688 & 8.37096e-5 \\\\\n\t10 & rs73236618 & TLR10 & 0.999666 & 0.00010875 \\\\\n\t11 & rs73236618 & FAM114A1 & 0.999349 & 0.000158079 \\\\\n\t12 & rs5743580 & FAM114A1 & 0.999102 & 0.000219725 \\\\\n\t13 & rs3744749 & MIRLET7BHG & 0.998505 & 0.000317786 \\\\\n\t14 & rs3744749 & LINC01762 & 0.924732 & 0.00567138 \\\\\n\t15 & rs768533 & PPP6R2 & 0.922192 & 0.0104805 \\\\\n\t16 & rs768533\\_1 & PPP6R2 & 0.922192 & 0.0146885 \\\\\n\t17 & rs768533 & TMEM60 & 0.917629 & 0.0186698 \\\\\n\t18 & rs768533\\_1 & TMEM60 & 0.917629 & 0.0222088 \\\\\n\t19 & rs768533 & TOR3A & 0.913258 & 0.0256053 \\\\\n\t20 & rs768533\\_1 & TOR3A & 0.913258 & 0.0286621 \\\\\n\t21 & rs768533 & CD19 & 0.911178 & 0.0315268 \\\\\n\t22 & rs768533\\_1 & CD19 & 0.911178 & 0.0341311 \\\\\n\t23 & rs4926170 & ZFP64 & 0.900374 & 0.0369787 \\\\\n\t24 & rs73054305 & GIPR & 0.89784 & 0.0396946 \\\\\n\t$\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ & $\\dots$ \\\\\n\\end{tabular}\n"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "9",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "BioFindr computes a [posterior probability](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/) of non-zero association for every **Source** variant (columns of `dgm`) and **Target** gene (columns of `dt`). By default the output is sorted by decreasing **Probability**. The optional parameter **FDR** can be used to limit the output to the set of pairs that has a [global false discovery rate (FDR)](https://en.wikipedia.org/wiki/False_discovery_rate#Storey-Tibshirani_procedure) less than a desired value (here set to 5%). The **qvalue** column in the output can be used for further filtering of the output, see the [coexpression analysis tutorial](coexpression.qmd) for further details.\n",
+                "\n",
+                "Note the order of the arguments. The first argument `dt` is the **Target** DataFrame, and the second argument the **Source** DataFrame.\n",
+                "\n",
+                "[1]: https://github.com/tmichoel/BioFindr.jl\n",
+                "[2]: https://github.com/lingfeiwang/findr-data-geuvadis\n",
+                "[3]: https://doi.org/10.1038/nature12531\n",
+                "[4]: https://dataframes.juliadata.org/stable/\n",
+                "[5]: https://doi.org/10.1371/journal.pcbi.1005703"
+            ]
+        }
+    ],
+    "timestamp": "2026-06-05T19:36:46.743",
+    "file": "/home/tom/Repositories/teaching/BioFindrTutorials/association.qmd",
+    "qnr_schema_version": "1.0.0"
+}

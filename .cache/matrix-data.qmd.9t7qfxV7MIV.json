@@ -1,0 +1,344 @@
+{
+    "cells": [
+        {
+            "id": "1",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "---\n",
+                "title: \"Matrix-based data\"\n",
+                "format:\n",
+                "  html:\n",
+                "    code-fold: false\n",
+                "engine: julia\n",
+                "execute: \n",
+                "  cache: true\n",
+                "  keep-ipynb: true\n",
+                "---\n",
+                "## Introduction\n",
+                "\n",
+                "Internally, all [BioFindr][1] functions work with matrices or array-based data, and the [DataFrame](https://dataframes.juliadata.org/stable/) based `findr` methods used in the [coexpression analysis](coexpression.qmd), [association analysis](association.qmd), and [causal inference](causal-inference.qmd) tutorials are wrapper functions provided for convenience. If you prefer matrix-based data over DataFrames, you can directly use matrix-based `findr` methods without having to create DataFrames first.\n",
+                "\n",
+                "## Set up the environment"
+            ]
+        },
+        {
+            "id": "2",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "using DrWatson\n",
+                "using DataFrames\n",
+                "using Arrow\n",
+                "\n",
+                "using BioFindr"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "3",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "## Load data\n",
+                "\n",
+                "Let's pretend our GEUVADIS data is in a matrix-based format:"
+            ]
+        },
+        {
+            "id": "4",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "Xt = Matrix(DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dt.arrow\"))));\n",
+                "Xm = Matrix(DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dm.arrow\"))));\n",
+                "Gm = Matrix(DataFrame(Arrow.Table(datadir(\"exp_pro\",\"findr-data-geuvadis\", \"dgm.arrow\"))));"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "5",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "We also need the microRNA eQTL mapping (see the [causal inference tutorial](causal-inference.qmd)), in this case in the form of an array where each row corresponds to a cis-eQTL/eGene pair represented by of a column index of `Gm` (i.e. a SNP) and a column index of `Xm` (i.e. a microRNA). [Recall](causal-inference.qmd) that due to the preprocessing of the [findr-geuvadis][2] data. the column indices are identical, but this will not be the case in general:"
+            ]
+        },
+        {
+            "id": "6",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "mirpairs = zeros(Int32,size(Gm,2),2);\n",
+                "for k=1:size(mirpairs,1)\n",
+                "    mirpairs[k,:] = [k k]\n",
+                "end"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "7",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "Note that data must be stored in matrices where **columns correspond to variables** (genes, SNPs, etc.) and **rows correspond to observations** (samples).\n",
+                "\n",
+                "## Run BioFindr\n",
+                "\n",
+                "Below, we only show the relevant `findr_matrix` commands. Check the corresponding tutorials and [BioFindr documentation][6] for more details. \n",
+                "\n",
+                "### Coexpression analysis\n",
+                "\n",
+                "#### All-vs-all\n",
+                "\n",
+                "Coexpression analysis on a single matrix returns a square matrix with dimensions equal to the number of variables (columns) in the input matrix:"
+            ]
+        },
+        {
+            "id": "8",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "P = BioFindr.findr_matrix(Xm)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "674×674 Matrix{Float64}:\n 1.0        0.00916858  0.194      …  0.0        0.165272  0.122761\n 0.0        1.0         0.0495855     0.124753   0.719807  0.432116\n 0.212284   0.00916858  1.0           0.911956   0.165272  0.0422307\n 0.0        0.00996431  0.0495855     0.246726   0.0       0.224656\n 0.102238   0.0123471   0.201251      0.0        0.348725  0.517057\n 0.0        0.00916858  0.0        …  0.83239    0.139247  0.31329\n 0.447964   0.00916858  0.0495855     0.073816   0.204236  0.0\n 0.0        0.00916858  0.599763      0.183703   0.487751  0.0422307\n 0.0625764  0.0         0.125998      0.0795851  0.37967   0.238788\n 0.212284   0.505946    1.0           0.0        0.394718  0.241892\n ⋮                                 ⋱                       \n 0.0        0.0         0.0655191  …  0.090374   0.165272  0.0172629\n 0.145406   0.00916858  0.826973      0.0        0.378483  0.0\n 0.0709575  0.00916858  0.0           0.0        0.41458   0.226578\n 0.0        0.00916858  0.171388      0.217528   0.165272  0.887061\n 0.269168   0.0355088   0.0495855     0.0        0.165307  0.263638\n 0.212284   0.134236    0.0495855  …  0.99952    0.170009  0.0172629\n 0.0        0.021868    0.919732      1.0        0.192011  0.933795\n 0.0        0.737424    0.0495855     0.0571724  1.0       1.0\n 0.0        0.343804    0.0495855     0.918666   1.0       1.0"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "9",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "In the output, columns correspond to A-genes (causal factors) and rows to B-genes (targets), that is:\n",
+                "\n",
+                "$$\n",
+                "P_{i,j} = P(X_j \\to X_i)\n",
+                "$$\n",
+                "\n",
+                "Note that the diagonal is arbitrarily set to one, BioFindr cannot make any inferences about the presence or absence of self-regulation!\n",
+                "\n",
+                "#### Bipartite\n",
+                "\n",
+                "Analyse coexpression *from* a subset of variables *to* the whole set:"
+            ]
+        },
+        {
+            "id": "10",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "P = BioFindr.findr_matrix(Xm; cols=[1,3,7,50])"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "674×4 Matrix{Float64}:\n 1.0        0.194      0.441332  0.262614\n 0.0        0.0495855  0.0       0.178136\n 0.212284   1.0        0.0       0.0\n 0.0        0.0495855  0.104343  0.442647\n 0.102238   0.201251   0.292016  0.0\n 0.0        0.0        0.0       0.0\n 0.447964   0.0495855  1.0       0.237812\n 0.0        0.599763   0.209111  0.0763643\n 0.0625764  0.125998   0.0       0.259251\n 0.212284   1.0        0.104343  0.042861\n ⋮                               \n 0.0        0.0655191  0.20045   0.292107\n 0.145406   0.826973   0.104343  0.27498\n 0.0709575  0.0        0.606292  0.26046\n 0.0        0.171388   0.104343  0.280788\n 0.269168   0.0495855  0.104543  0.349376\n 0.212284   0.0495855  0.0       0.309615\n 0.0        0.919732   0.104343  0.0\n 0.0        0.0495855  0.104343  0.0\n 0.0        0.0495855  0.0       0.333281"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "11",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "Analyse coexpression *from* the variables in `Xm` *to* the variables in `Xt`:"
+            ]
+        },
+        {
+            "id": "12",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "P = BioFindr.findr_matrix(Xt,Xm)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "19947×674 Matrix{Float64}:\n 0.0         0.0         0.763883   …  0.165354    0.0         0.0850426\n 0.0         0.0365591   0.514881      0.349249    0.0549157   0.137567\n 0.0         0.0         0.373846      0.00822578  0.0368741   0.0928394\n 0.0         0.0         0.0253258     0.00822578  0.10996     0.732424\n 0.0428338   0.0357019   0.294593      0.0314992   0.042672    0.8585\n 0.0         0.0416541   0.314365   …  0.253437    0.0         0.199877\n 0.125543    0.0         0.147785      0.0         0.0215345   0.0662608\n 0.0         0.0         0.287048      0.265984    0.0         0.403602\n 0.0         0.00942808  0.0           0.0         0.0         0.274867\n 0.0         0.0365591   0.495411      0.217839    0.0         0.00412467\n ⋮                                  ⋱                          \n 0.0480295   0.0         0.426729      0.0960691   0.0279688   0.0\n 0.0         0.0         0.766588      0.333224    0.048296    0.12974\n 0.00484254  0.0361967   0.338391   …  0.148547    0.171054    0.100227\n 0.0437642   0.0         0.449278      0.0         0.0         0.799782\n 0.0         0.0         0.279282      0.100556    0.0         0.100099\n 0.0480295   0.0         0.0           0.0         0.256236    0.721347\n 0.0504915   0.0         0.0644403     0.0         0.0242091   0.360761\n 0.118496    0.0         0.0276156  …  0.606041    0.00689225  0.152281\n 0.0480295   0.0         0.0           0.030476    0.111428    0.550259"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "13",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "### Association analysis\n",
+                "\n",
+                "Testing associations between eQTL genotypes in `Gm`and microRNA expression levels in `Xm`:"
+            ]
+        },
+        {
+            "id": "14",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "P = BioFindr.findr_matrix(Xm,Gm)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "674×55 Matrix{Float64}:\n 0.985145   0.3613     0.0  0.0  0.0  0.0  …  0.0        0.0  0.0  0.0\n 0.162536   1.0        0.0  0.0  0.0  0.0     0.425227   0.0  0.0  0.0\n 0.0666629  0.0        0.0  0.0  0.0  0.0     0.140544   0.0  0.0  0.0\n 0.0        0.521178   0.0  0.0  0.0  0.0     0.0121992  0.0  0.0  0.0\n 0.0        0.500366   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0\n 0.0        0.406308   0.0  0.0  0.0  0.0  …  0.0        0.0  0.0  0.0\n 0.0        0.440371   0.0  0.0  0.0  0.0     0.0        0.0  0.0  1.0\n 0.0        0.294349   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0\n 0.0        0.0833697  0.0  0.0  0.0  0.0     0.198238   0.0  0.0  0.0\n 0.221126   0.449856   0.0  0.0  0.0  0.0     0.119632   0.0  0.0  0.0\n ⋮                                    ⋮    ⋱                       \n 0.171181   0.179901   0.0  0.0  0.0  0.0  …  0.0        0.0  0.0  0.0\n 0.0191778  0.152283   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0\n 0.0        0.604519   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0\n 0.0743061  0.610707   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0\n 0.0        0.580355   0.0  0.0  0.0  0.0     0.0605735  0.0  0.0  0.0\n 0.0202112  0.620588   0.0  0.0  0.0  0.0  …  0.0        0.0  0.0  0.0\n 0.2166     0.179901   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0\n 0.0        0.170807   0.0  0.0  0.0  0.0     0.0        0.0  0.0  0.0\n 0.0        0.207339   0.0  0.0  0.0  0.0     0.0434338  0.0  0.0  0.134986"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "15",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "In the output, columns correspond to eQTLs and rows to genes, that is,\n",
+                "\n",
+                "\n",
+                "$$\n",
+                "P_{i,j} = P(E_j \\to X_i)\n",
+                "$$\n",
+                "\n",
+                "### Causal inference\n",
+                "\n",
+                "#### Subset-to-all\n",
+                "\n",
+                "When you run causal inference with `findr` using matrix-based inputs, the default is to return posterior probabilities for [each test](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/) separately:"
+            ]
+        },
+        {
+            "id": "16",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "P = BioFindr.findr_matrix(Xm,Gm,mirpairs);"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "17",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "Note the dimensions of `P`:"
+            ]
+        },
+        {
+            "id": "18",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "size(P)"
+            ],
+            "outputs": [
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 1,
+                    "data": {
+                        "text/plain": "(674, 4, 55)"
+                    },
+                    "metadata": {
+                    }
+                }
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "19",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "The third dimension indexes the A-genes (causes), the second dimension the tests (test 2-5, see link above), and the first the B-genes (targets). If you are interested only in a specific combination, use the optional `combination` argument as explained in the [causal inference tutorial](causal-inference.qmd):"
+            ]
+        },
+        {
+            "id": "20",
+            "cell_type": "code",
+            "metadata": {
+            },
+            "source": [
+                "P = BioFindr.findr_matrix(Xm,Gm,mirpairs; combination=\"IV\");"
+            ],
+            "outputs": [
+            ],
+            "execution_count": 1
+        },
+        {
+            "id": "21",
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "\n",
+                "[1]: https://github.com/tmichoel/BioFindr.jl\n",
+                "[2]: https://github.com/lingfeiwang/findr-data-geuvadis\n",
+                "[3]: https://doi.org/10.1038/nature12531\n",
+                "[4]: https://dataframes.juliadata.org/stable/\n",
+                "[5]: https://doi.org/10.1371/journal.pcbi.1005703\n",
+                "[6]: https://tmichoel.github.io/BioFindr.jl/dev/"
+            ]
+        }
+    ],
+    "timestamp": "2026-06-06T16:41:19.146",
+    "file": "/home/tom/Repositories/teaching/BioFindrTutorials/matrix-data.qmd",
+    "qnr_schema_version": "1.0.0"
+}

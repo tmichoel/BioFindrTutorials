@@ -18,8 +18,6 @@ In this tutorial we consider the situation where you have a single gene of inter
 
 ```{julia}
 using DrWatson
-quickactivate(@__DIR__)
-
 using DataFrames
 using Arrow
 using StatsPlots

@@ -21,8 +21,6 @@ We will illustrate how to run causal inference with [BioFindr][1] using [preproc
 
 ```{julia}
 using DrWatson
-quickactivate(@__DIR__)
-
 using DataFrames
 using Arrow
 

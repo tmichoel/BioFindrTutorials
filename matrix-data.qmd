@@ -16,8 +16,6 @@ Internally, all [BioFindr][1] functions work with matrices or array-based data, 
 
 ```{julia}
 using DrWatson
-quickactivate(@__DIR__)
-
 using DataFrames
 using Arrow
 
@@ -47,7 +45,7 @@ Note that data must be stored in matrices where **columns correspond to variable
 
 ## Run BioFindr
 
-Below, we only show the relevant `findr` commands. Check the corresponding tutorials and [BioFindr documentation][6] for more details. 
+Below, we only show the relevant `findr_matrix` commands. Check the corresponding tutorials and [BioFindr documentation][6] for more details. 
 
 ### Coexpression analysis
 
@@ -56,7 +54,7 @@ Below, we only show the relevant `findr` commands. Check the corresponding tutor
 Coexpression analysis on a single matrix returns a square matrix with dimensions equal to the number of variables (columns) in the input matrix:
 
 ```{julia}
-P = findr(Xm)
+P = BioFindr.findr_matrix(Xm)
 ```
 
 In the output, columns correspond to A-genes (causal factors) and rows to B-genes (targets), that is:
@@ -72,13 +70,13 @@ Note that the diagonal is arbitrarily set to one, BioFindr cannot make any infer
 Analyse coexpression *from* a subset of variables *to* the whole set:
 
 ```{julia}
-P = findr(Xm; cols=[1,3,7,50])
+P = BioFindr.findr_matrix(Xm; cols=[1,3,7,50])
 ```
 
 Analyse coexpression *from* the variables in `Xm` *to* the variables in `Xt`:
 
 ```{julia}
-P = findr(Xt,Xm)
+P = BioFindr.findr_matrix(Xt,Xm)
 ```
 
 ### Association analysis
@@ -86,7 +84,7 @@ P = findr(Xt,Xm)
 Testing associations between eQTL genotypes in `Gm`and microRNA expression levels in `Xm`:
 
 ```{julia}
-P = findr(Xm,Gm)
+P = BioFindr.findr_matrix(Xm,Gm)
 ```
 
 In the output, columns correspond to eQTLs and rows to genes, that is,
@@ -103,7 +101,7 @@ $$
 When you run causal inference with `findr` using matrix-based inputs, the default is to return posterior probabilities for [each test](https://tmichoel.github.io/BioFindr.jl/dev/realLLR/) separately:
 
 ```{julia}
-P = findr(Xm,Gm,mirpairs);
+P = BioFindr.findr_matrix(Xm,Gm,mirpairs);
 ```
 
 Note the dimensions of `P`:
@@ -115,7 +113,7 @@ size(P)
 The third dimension indexes the A-genes (causes), the second dimension the tests (test 2-5, see link above), and the first the B-genes (targets). If you are interested only in a specific combination, use the optional `combination` argument as explained in the [causal inference tutorial](causal-inference.qmd):
 
 ```{julia}
-P = findr(Xm,Gm,mirpairs; combination="IV");
+P = BioFindr.findr_matrix(Xm,Gm,mirpairs; combination="IV");
 ```
 
 [1]: https://github.com/tmichoel/BioFindr.jl
