@@ -97,7 +97,13 @@ _ , _ , llr4 , _ = BioFindr.real_llr_col(Yt, Ym, E);
 
 ### Compute posterior probabilities
 
-Posterior probabilities are computed by [fitting a mixture model](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/) to the observed vector of log-likelihood ratios. Two fitting methods are implmented: a [method of moments](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/#mom_postprobs) or using [kernel density estimation](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/#kde_postprobs). The method of moments is the default:
+Posterior probabilities are computed by [fitting a mixture model](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/) to the observed vector of log-likelihood ratios. Three fitting methods are implmented: the [original histogram-based method](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005703#sec009), a [method of moments](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/#mom_postprobs) or using [kernel density estimation](https://tmichoel.github.io/BioFindr.jl/dev/posteriorprobs/#kde_postprobs). The original histogram-based method is the default:
+
+```{julia}
+pp_hist = BioFindr.fit_mixdist_hist(llr4, ns, ng, :relev);
+```
+
+The method of moments is the default:
 
 ```{julia}
 pp_mom, dmix = BioFindr.fit_mixdist_mom(llr4, ns, ng, :relev);
@@ -127,10 +133,18 @@ The `prior` of the null component is the [estimated proportion of truly null fea
 π₀ = dmix.prior.p[1]
 ```
 
-We can verify that both methods (moments and KDE) give similar posterior probabilities
+We can verify that all three methods give similar posterior probabilities
+
+```{julia}
+scatter(pp_mom,pp_hist, markersize=4)
+```
 
 ```{julia}
 scatter(pp_mom,pp_kde, markersize=4)
+```
+
+```{julia}
+scatter(pp_hist,pp_kde, markersize=4)
 ```
 
 ### Compute p-values under the null hypothesis
@@ -182,6 +196,7 @@ xlims!(0,0.03)
 
 Compared to the figure at the top of the page, we see that the method of moments provides a smooth fit to the histogram and consequently also posterior probabilities that increase more smoothly with increasing LLR values. 
 
+
 ### KDE estimates
 
 For the KDE method, we don't have a distribution object fitting the histogram. Instead with use kernel density estimation and return estimated pdf values at every value of the LLR input vector:
@@ -211,6 +226,31 @@ plot!(twinx(),lval_kde,pp_val_kde, linewidth=2, color=:blue, label="", yguidefon
 #ylabel(L"P(H^{(4)}_{alt} \mid LLR^{(4)})")
 xlims!(0,0.03)
 ```
+
+
+### Histogram-based estimates
+
+For the histogram-based method, we don't have any object fitting the histogram and skip plotting this curve. As before, we filter a relevant range of values from all vectors:
+
+```{julia}
+rg = 1:50:length(llr4);
+t = sortperm(llr4);
+lval_hist = llr4[t][rg];
+pp_val_hist = pp_hist[t][rg];
+```
+And plot the figure again:
+
+```{julia}
+histogram(llr4, normalize=:pdf, bins=100, color=:navajowhite1, label="Real data", size=(600,450))
+plot!(lval,pnull_val, linewidth=2, color=:red, label=L"\pi_0 p(LLR^{(4)} \mid \mathcal{H}_0)", legend=(0.25,0.95))
+ylims!(0, 160)
+xlabel!(L"LLR^{(4)}")
+ylabel!(L"p(LLR^{(4)})")
+plot!(twinx(),lval_hist,pp_val_hist, linewidth=2, color=:blue, label="", yguidefontcolor=:blue, ylims=(0,1.), ylabel=L"P(H^{(4)}_{alt} \mid LLR^{(4)})")
+#ylabel(L"P(H^{(4)}_{alt} \mid LLR^{(4)})")
+xlims!(0,0.03)
+```
+
 
 [1]: https://github.com/tmichoel/BioFindr.jl
 [2]: https://github.com/lingfeiwang/findr-data-geuvadis
